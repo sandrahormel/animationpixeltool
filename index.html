@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIXEL ARTIFACT - Animator</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <!-- NEU: Bricolage Grotesque von Mathieu Triay -->
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <!-- Externe Bibliothek für die GIF-Generierung -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
+    <style>
+        :root {
+            /* STANDARD THEME IST JETZT DUNKEL */
+            --app-bg: #000000;
+            --panel-bg: #000000;
+            --main-text: #ffffff;
+            --ruler-bg: #000000;
+            --ruler-text: #ffffff;
+            --btn-bg: #000000;
+            --btn-hover-bg: #ffffff;
+            --btn-text: #ffffff;
+            --canvas-bg: #000000;
+            --accent: #0000ff; /* 100% RGB Blau - Nur für UI */
+            --grid-dot: rgba(255, 255, 255, 0.15);
+        }
+
+        body.inverted {
+            /* INVERTED THEME IST JETZT HELL */
+            --app-bg: #ffffff;
+            --panel-bg: #ffffff;
+            --main-text: #000000;
+            --ruler-bg: #ffffff;
+            --ruler-text: #000000;
+            --btn-bg: #ffffff;
+            --btn-hover-bg: #000000;
+            --btn-text: #000000;
+            --canvas-bg: #ffffff;
+            --accent: #0000ff;
+            --grid-dot: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            background-color: var(--app-bg);
+            color: var(--main-text);
+            margin: 0;
+            overflow: hidden;
+            transition: background-color 0.2s;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+        }
+
+        h1, h2, h3 {
+            margin: 0 0 10px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+
+        h1 { 
+            font-size: 24px; 
+            padding-bottom: 8px; 
+            margin-bottom: 12px;
+            background: var(--app-bg);
+            color: var(--main-text);
+            border: 1px solid var(--main-text) !important;
+            padding: 8px;
+        }
+        
+        h3 { 
+            font-size: 13px; 
+            margin-top: 15px; 
+            color: var(--main-text); 
+            border-bottom: 1px solid var(--main-text);
+            padding-bottom: 4px;
+        }
+
+        .raster {
+            font-family: 'VT323', monospace;
+            font-size: 1.3em;
+            color: var(--accent);
+            font-weight: normal;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        p.small {
+            font-size: 11px;
+            font-weight: 400;
+            margin: 0 0 10px 0;
+            color: var(--ruler-text);
+            text-transform: uppercase;
+        }
+
+        /* Brutalist UI Inputs */
+        .ui-btn {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: 1px solid var(--main-text) !important;
+            padding: 8px 10px;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background-color 0.1s, color 0.1s;
+            width: 100%;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .ui-btn:hover { 
+            background: var(--btn-hover-bg); 
+            color: var(--app-bg); 
+        }
+        
+        .ui-btn.primary { 
+            background: var(--app-bg); 
+            color: var(--accent); 
+            border: 1px solid var(--accent) !important;
+        }
+        
+        .ui-btn.primary:hover { 
+            background: var(--accent); 
+            color: var(--app-bg); 
+        }
+        
+        .ui-btn.active { 
+            background: var(--main-text); 
+            color: var(--app-bg); 
+            border: 1px solid var(--main-text) !important; 
+        }
+
+        /* Sidebar Settings */
+        .settings-panel {
+            width: 320px;
+            background: var(--panel-bg);
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        #leftPanel { border-right: 1px solid var(--main-text) !important; }
+        #rightPanel { border-left: 1px solid var(--main-text) !important; }
+
+        .settings-panel::-webkit-scrollbar { width: 8px; }
+        .settings-panel::-webkit-scrollbar-track { background: var(--app-bg); border-left: 1px solid var(--main-text); }
+        .settings-panel::-webkit-scrollbar-thumb { background: var(--main-text); }
+
+        input[type="file"] { display: none; }
+        .file-upload-label { display: block; text-align: center; margin-bottom: 0; }
+        .control-group { margin-bottom: 20px; }
+
+        .modes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .modes-grid .ui-btn { margin-bottom: 0; }
+
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 8px 0; padding: 5px 0; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 8px; background: var(--accent); cursor: pointer; margin-top: -6px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--main-text); }
+
+        /* Style Controls */
+        .style-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .style-row label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+        .style-row input[type="checkbox"] {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border: 1px solid var(--main-text) !important;
+            background: var(--app-bg);
+            margin-right: 8px;
+            cursor: pointer;
+            position: relative;
+        }
+        .style-row input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px; width: 8px; height: 8px;
+            background: var(--accent);
+        }
+        input[type="color"] {
+            appearance: none;
+            border: 1px solid var(--main-text) !important;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            background: none;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none !important; }
+
+        /* Workspace */
+        .workspace {
+            flex-grow: 1;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--app-bg);
+            position: relative;
+            overflow: hidden;
+            cursor: grab; /* Zeigt an, dass man die Fläche greifen kann */
+        }
+        
+        .workspace:active {
+            cursor: grabbing; /* Greif-Mauszeiger beim Ziehen */
+        }
+        
+        #zoomWrapper {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-origin: center center;
+        }
+        
+        #zoomWrapper.smooth-zoom {
+            transition: transform 0.15s ease-out;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            background-color: var(--canvas-bg);
+            border: 1px solid var(--main-text) !important;
+            transition: width 0.3s, height 0.3s;
+            overflow: hidden; /* Verhindert, dass Effekte wie VHS aus dem Rahmen bluten */
+            flex-shrink: 0; /* HIER: Verhindert, dass der Browser die HD-Formate zerquetscht! */
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            pointer-events: none;
+        }
+        
+        .top-controls > * {
+            pointer-events: auto;
+        }
+
+        .top-controls-right { display: flex; gap: 10px; }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: stretch;
+            border: 1px solid var(--main-text);
+            background: var(--app-bg);
+        }
+        .zoom-controls .ui-btn {
+            border: none !important;
+            margin: 0;
+            width: 30px;
+            font-size: 16px;
+            padding: 0;
+        }
+        .zoom-controls span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            min-width: 50px;
+            border-left: 1px solid var(--main-text);
+            border-right: 1px solid var(--main-text);
+            font-family: 'VT323', monospace;
+            color: var(--accent);
+            font-size: 1.1em;
+        }
+
+        /* Loading Overlay for GIF */
+        #loadingOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--app-bg);
+            color: var(--accent);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+        }
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            border: 1px solid var(--main-text) !important;
+            background: var(--app-bg);
+            margin-top: 20px;
+            padding: 2px;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            transition: width 0.1s;
+        }
+
+        /* Result Overlay (NEW) */
+        #resultOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--app-bg);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        #resultGif {
+            max-width: 80%;
+            max-height: 60vh;
+            border: 2px solid var(--main-text);
+            margin-bottom: 20px;
+            box-shadow: 10px 10px 0px var(--accent);
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LEFT Settings Sidebar -->
+    <div id="leftPanel" class="settings-panel">
+        <h1>Anim<span class="raster">ator</span></h1>
+        
+        <!-- IMPORT & FORMAT (NEW) -->
+        <div class="control-group">
+            <h3 style="margin-top: 0;">1. Imp<span class="raster">ort</span></h3>
+            <label class="ui-btn file-upload-label">
+                UPLOAD SVG ARTIFACT
+                <input type="file" id="svgUpload" accept=".svg">
+            </label>
+            <p id="fileInfo" class="small" style="margin-top: 5px; color: var(--accent); display: none;">File loaded.</p>
+            
+            <!-- NEU: IMPORT MODE TOGGLE -->
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 15px;">
+                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Import Engine</label>
+            </div>
+            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                <button id="importModePixel" class="ui-btn active" style="margin:0; padding: 8px 4px;">EXACT PIXEL</button>
+                <button id="importModeVector" class="ui-btn" style="margin:0; padding: 8px 4px;">RASTER VECTOR</button>
+            </div>
+
+            <!-- PIXEL DETAIL SLIDER (Wird nur im Vector-Modus gezeigt) -->
+            <div id="vectorSettings" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px;">
+                    <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Pixel Detail (Resolution)</label>
+                    <span id="pixelDetailLabel" class="raster" style="font-size: 1.2em;">60px</span>
+                </div>
+                <input type="range" id="pixelDetailSlider" min="20" max="150" value="60" step="5" title="Lower = Chunky 8-bit, Higher = More detail">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 15px;">
+                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Canvas Format</label>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px;">
+                <button id="fmtSquare" class="ui-btn active" style="margin:0; grid-column: span 2; padding: 8px 4px;">1:1 SQ</button>
+                <button id="fmtHDL" class="ui-btn" style="margin:0; padding: 8px 4px;">HD L</button>
+                <button id="fmtHDP" class="ui-btn" style="margin:0; padding: 8px 4px;">HD P</button>
+                <button id="fmtFHDL" class="ui-btn" style="margin:0; padding: 8px 4px;">FHD L</button>
+                <button id="fmtFHDP" class="ui-btn" style="margin:0; padding: 8px 4px;">FHD P</button>
+            </div>
+        </div>
+
+        <!-- TRANSFORM (UPDATED WITH GRID) -->
+        <div class="control-group">
+            <h3>2. Trans<span class="raster">form</span></h3>
+            
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Scale Object</label>
+                <span id="objScaleLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+            </div>
+            <input type="range" id="objScaleSlider" min="0.2" max="5" value="1" step="0.1">
+
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px;">
+                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Offset X / Y</label>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <input type="range" id="objXSlider" min="-800" max="800" value="0" step="10" title="Move X">
+                <input type="range" id="objYSlider" min="-800" max="800" value="0" step="10" title="Move Y">
+            </div>
+
+            <!-- GRID REPEAT SLIDERS -->
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 15px;">
+                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Repeat Grid (Cols / Rows)</label>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <input type="range" id="repeatXSlider" min="1" max="10" value="1" step="1" title="Columns">
+                <input type="range" id="repeatYSlider" min="1" max="10" value="1" step="1" title="Rows">
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px;">
+                <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Grid Gap (X / Y)</label>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <input type="range" id="gapXSlider" min="0" max="800" value="100" step="10" title="Gap X">
+                <input type="range" id="gapYSlider" min="0" max="800" value="100" step="10" title="Gap Y">
+            </div>
+        </div>
+
+        <!-- STYLE -->
+        <div class="control-group">
+            <h3>3. St<span class="raster">yle</span></h3>
+            
+            <div class="style-row" style="margin-bottom: 2px;">
+                <label><input type="checkbox" id="toggleCustomBg"> Animated Colors</label>
+            </div>
+            <div id="bgColorsWrapper" style="display: none; padding-bottom: 10px; border-bottom: 1px dotted var(--main-text); margin-bottom: 10px;">
+                <div id="bgColorsList" style="display: flex; gap: 5px; margin-bottom: 5px; flex-wrap: wrap;">
+                    <input type="color" class="bg-color-input" value="#ff0000">
+                </div>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button id="addBgColorBtn" class="ui-btn" style="margin: 0; padding: 4px; font-size: 9px;">+ COLOR</button>
+                    <button id="remBgColorBtn" class="ui-btn" style="margin: 0; padding: 4px; font-size: 9px;">- COLOR</button>
+                </div>
+                
+                <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+                    <button id="targetBgBtn" class="ui-btn active" style="margin: 0; padding: 6px;">BACKGROUND</button>
+                    <button id="targetOutlineBtn" class="ui-btn" style="margin: 0; padding: 6px;">OUTLINE</button>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Color Speed</label>
+                    <span id="colorSpeedLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+                </div>
+                <input type="range" id="colorSpeedSlider" min="0.1" max="5" value="1" step="0.1">
+            </div>
+
+            <!-- METALLIC TEXTURE (NEW) -->
+            <div class="style-row" style="margin-bottom: 2px;">
+                <label><input type="checkbox" id="toggleMaterial"> Metallic Texture</label>
+            </div>
+            <div id="materialWrapper" style="display: none; padding-bottom: 10px; border-bottom: 1px dotted var(--main-text); margin-bottom: 10px;">
+                <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+                    <button id="matTargetFillBtn" class="ui-btn" style="margin: 0; padding: 6px;">FILL</button>
+                    <button id="matTargetOutlineBtn" class="ui-btn" style="margin: 0; padding: 6px;">OUTLINE</button>
+                    <button id="matTargetBothBtn" class="ui-btn active" style="margin: 0; padding: 6px;">BOTH</button>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button id="matSteelBtn" class="ui-btn active" style="margin: 0; padding: 6px;">STEEL</button>
+                    <button id="matSilverBtn" class="ui-btn" style="margin: 0; padding: 6px;">SILVER</button>
+                    <button id="matChromeBtn" class="ui-btn" style="margin: 0; padding: 6px;">CHROME</button>
+                </div>
+            </div>
+
+            <div class="style-row">
+                <label><input type="checkbox" id="toggleFill"> Solid Fill</label>
+                <input type="color" id="colorFill" value="#ffffff">
+            </div>
+            
+            <div class="style-row" style="margin-bottom: 2px;">
+                <label><input type="checkbox" id="toggleOutline"> Global Outline</label>
+                <input type="color" id="colorOutline" value="#0000ff">
+            </div>
+            <div class="style-row" style="margin-bottom: 2px;">
+                <input type="range" id="widthOutline" min="1" max="100" value="8" step="1" style="width: 100%;">
+            </div>
+            
+            <!-- ADOBE BLEND MODES -->
+            <div class="style-row" style="margin-bottom: 2px;">
+                <label>Blend Mode</label>
+                <select id="blendModeSelect" style="background: var(--app-bg); color: var(--main-text); border: 1px solid var(--main-text) !important; padding: 4px; font-family: inherit; font-size: 11px; outline: none; text-transform: uppercase;">
+                    <option value="source-over">NORMAL</option>
+                    <option value="difference">DIFFERENCE</option>
+                    <option value="exclusion">EXCLUSION (SOFT)</option>
+                    <option value="screen">SCREEN (GLOW)</option>
+                    <option value="multiply">MULTIPLY (DARK)</option>
+                    <option value="overlay">OVERLAY</option>
+                    <option value="color-dodge">COLOR DODGE</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace" id="workspace">
+        <div class="top-controls">
+            <div class="zoom-controls">
+                <button id="zoomOut" class="ui-btn">–</button>
+                <span id="zoomLabel">100%</span>
+                <button id="zoomIn" class="ui-btn">+</button>
+            </div>
+            <div class="top-controls-right">
+                <button id="invertToggle" class="ui-btn" style="width: auto; padding: 8px 16px; margin: 0;">INVERT <span class="raster">◐</span></button>
+                <button id="renderGifBtn" class="ui-btn primary" style="width: auto; padding: 8px 16px; margin: 0; font-size: 14px; box-shadow: 2px 2px 0px var(--accent) !important;">RENDER GIF</button>
+            </div>
+        </div>
+        
+        <div id="zoomWrapper">
+            <div class="canvas-wrapper">
+                <canvas id="animCanvas" width="800" height="600"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT Settings Sidebar -->
+    <div id="rightPanel" class="settings-panel">
+        <!-- MOTION -->
+        <div class="control-group">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <h3 style="margin: 0; border: none;">4. 2D Mo<span class="raster">tion</span></h3>
+            </div>
+            
+            <div style="display: flex; gap: 8px; margin-bottom: 12px; margin-top: 5px;">
+                <button id="btnPlayTogether" class="ui-btn active" style="width: 50%; margin: 0;">TOGETHER</button>
+                <button id="btnPlaySequence" class="ui-btn" style="width: 50%; margin: 0;">SEQUENCE</button>
+            </div>
+
+            <button class="ui-btn active" id="btnStatic" style="margin-bottom: 12px; background: var(--accent); border-color: var(--accent) !important; color: #fff;">STATIC (CLEAR ALL)</button>
+            <div class="modes-grid" id="motionGrid">
+                <!-- 2D Global & Local Effects only -->
+                <button class="ui-btn" data-mode="rotate">ROTATE</button>
+                <button class="ui-btn" data-mode="bounce">BOUNCE</button>
+                <button class="ui-btn" data-mode="swing">SWING</button>
+                <button class="ui-btn" data-mode="shake">SHAKE</button>
+                <button class="ui-btn" data-mode="stretch">STRETCH</button>
+                <button class="ui-btn" data-mode="wave">WAVE</button>
+                <button class="ui-btn" data-mode="ripple">RIPPLE</button>
+                <button class="ui-btn" data-mode="pulse">PULSE</button>
+                <button class="ui-btn" data-mode="jitter">JITTER</button>
+                <button class="ui-btn" data-mode="glitch">GLITCH</button>
+                <button class="ui-btn" data-mode="scanline">SCANLINE</button>
+                <button class="ui-btn" data-mode="float">FLOAT</button>
+            </div>
+        </div>
+
+        <!-- 3D MOTION (NEW FOLDER) -->
+        <div class="control-group">
+            <h3 style="margin: 0 0 10px 0;">5. 3D Mo<span class="raster">tion</span></h3>
+            
+            <div class="modes-grid" id="motionGrid3D" style="margin-bottom: 15px;">
+                <button class="ui-btn" data-mode="spin3d">SPIN</button>
+                <button class="ui-btn" data-mode="flip3d">FLIP</button>
+                <button class="ui-btn" data-mode="tilt3d">TILT</button>
+                <button class="ui-btn" data-mode="wobble3d">WOBBLE</button>
+                <button class="ui-btn" data-mode="leaf3d">LEAF (NATURAL)</button>
+                <button class="ui-btn" data-mode="breathe3d">BREATHE (DEPTH)</button>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Z-Depth (Thickness)</label>
+                <span id="zDepthLabel" class="raster" style="font-size: 1.2em;">1 Lyr</span>
+            </div>
+            <input type="range" id="zDepthSlider" min="1" max="5" value="1" step="1">
+
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px;">
+                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">X-Axis Range</label>
+                <span id="xRangeLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+            </div>
+            <input type="range" id="xRangeSlider" min="0" max="3" value="1" step="0.1">
+
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px;">
+                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Y-Axis Range</label>
+                <span id="yRangeLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+            </div>
+            <input type="range" id="yRangeSlider" min="0" max="3" value="1" step="0.1">
+
+            <!-- NEW Z-Axis Range Slider -->
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px;">
+                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Z-Axis Range</label>
+                <span id="zAxisRangeLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+            </div>
+            <input type="range" id="zAxisRangeSlider" min="0" max="3" value="1" step="0.1">
+        </div>
+
+        <!-- INTENSITIES (NEW DYNAMIC FOLDER) -->
+        <div class="control-group">
+            <h3 style="margin: 0 0 10px 0;">6. Int<span class="raster">ensities</span></h3>
+            <div id="intensityContainer">
+                <p class="small">Activate a motion to adjust intensity.</p>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <h3 style="margin: 0; border: none;">Sp<span class="raster">eed</span></h3>
+                <span id="speedLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+            </div>
+            <input type="range" id="speedSlider" min="0.2" max="3" value="1" step="0.2">
+        </div>
+
+        <!-- POST-FX (Shifted) -->
+        <div class="control-group" style="margin-bottom: 0;">
+            <h3>7. Post<span class="raster">-FX</span></h3>
+            <div class="modes-grid" id="fxGrid">
+                <button class="ui-btn" data-fx="vhs">VHS TAPE</button>
+                <button class="ui-btn" data-fx="grain">GRAIN</button>
+                <button class="ui-btn" data-fx="crt" style="grid-column: span 2;">CRT GLOW</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingOverlay">
+        <div id="loadingText">RENDERING FRAMES...</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Result Screen (NEW) -->
+    <div id="resultOverlay">
+        <h2 style="color: var(--main-text);">GIF <span class="raster">RENDERED</span></h2>
+        <img id="resultGif" src="">
+        <div style="display: flex; gap: 10px; width: 300px;">
+            <button id="downloadResultBtn" class="ui-btn primary">DOWNLOAD GIF</button>
+            <button id="closeResultBtn" class="ui-btn">BACK</button>
+        </div>
+        <p class="small" style="margin-top: 15px;">If the button doesn't work, right-click the image and select "Save Image As...".</p>
+    </div>
+
+    <script>
+        // --- Elements ---
+        const svgUpload = document.getElementById('svgUpload');
+        const fileInfo = document.getElementById('fileInfo');
+        const animCanvas = document.getElementById('animCanvas');
+        const ctx = animCanvas.getContext('2d');
+        
+        // Beide Motion Grids zusammenfassen für Click-Events
+        const motionButtons2D = document.querySelectorAll('#motionGrid .ui-btn');
+        const motionButtons3D = document.querySelectorAll('#motionGrid3D .ui-btn');
+        const motionButtons = [...motionButtons2D, ...motionButtons3D];
+        
+        const fxButtons = document.querySelectorAll('#fxGrid .ui-btn');
+        const btnStatic = document.getElementById('btnStatic');
+        const btnPlayTogether = document.getElementById('btnPlayTogether');
+        const btnPlaySequence = document.getElementById('btnPlaySequence');
+        
+        // Transform Elements
+        const objScaleSlider = document.getElementById('objScaleSlider');
+        const objScaleLabel = document.getElementById('objScaleLabel');
+        const objXSlider = document.getElementById('objXSlider');
+        const objYSlider = document.getElementById('objYSlider');
+
+        // Import / Detail Elements
+        const importModePixel = document.getElementById('importModePixel');
+        const importModeVector = document.getElementById('importModeVector');
+        const vectorSettings = document.getElementById('vectorSettings');
+        const pixelDetailSlider = document.getElementById('pixelDetailSlider');
+        const pixelDetailLabel = document.getElementById('pixelDetailLabel');
+        
+        let currentSVGString = null; 
+        let currentImportMode = 'pixel'; // 'pixel' or 'vector'
+
+        // Format & Grid Elements (NEW)
+        const fmtSquare = document.getElementById('fmtSquare');
+        const fmtHDL = document.getElementById('fmtHDL');
+        const fmtHDP = document.getElementById('fmtHDP');
+        const fmtFHDL = document.getElementById('fmtFHDL');
+        const fmtFHDP = document.getElementById('fmtFHDP');
+        const canvasWrapper = document.querySelector('.canvas-wrapper');
+        const repeatXSlider = document.getElementById('repeatXSlider');
+        const repeatYSlider = document.getElementById('repeatYSlider');
+        const gapXSlider = document.getElementById('gapXSlider');
+        const gapYSlider = document.getElementById('gapYSlider');
+
+        // Style Elements
+        const toggleCustomBg = document.getElementById('toggleCustomBg');
+        const bgColorsWrapper = document.getElementById('bgColorsWrapper');
+        const bgColorsList = document.getElementById('bgColorsList');
+        const addBgColorBtn = document.getElementById('addBgColorBtn');
+        const remBgColorBtn = document.getElementById('remBgColorBtn');
+        
+        const targetBgBtn = document.getElementById('targetBgBtn');
+        const targetOutlineBtn = document.getElementById('targetOutlineBtn');
+        const colorSpeedSlider = document.getElementById('colorSpeedSlider');
+        const colorSpeedLabel = document.getElementById('colorSpeedLabel');
+
+        const toggleFill = document.getElementById('toggleFill');
+        const colorFill = document.getElementById('colorFill');
+        const toggleOutline = document.getElementById('toggleOutline');
+        const colorOutline = document.getElementById('colorOutline');
+        const blendModeSelect = document.getElementById('blendModeSelect'); 
+        
+        // Material Elements
+        const toggleMaterial = document.getElementById('toggleMaterial');
+        const materialWrapper = document.getElementById('materialWrapper');
+        const matTargetFillBtn = document.getElementById('matTargetFillBtn');
+        const matTargetOutlineBtn = document.getElementById('matTargetOutlineBtn');
+        const matTargetBothBtn = document.getElementById('matTargetBothBtn');
+        const matSteelBtn = document.getElementById('matSteelBtn');
+        const matSilverBtn = document.getElementById('matSilverBtn');
+        const matChromeBtn = document.getElementById('matChromeBtn');
+        
+        let activeMaterial = 'steel';
+        let matTarget = 'both'; // 'fill', 'outline', 'both'
+
+        // 3D Specific Elements
+        const zDepthSlider = document.getElementById('zDepthSlider');
+        const zDepthLabel = document.getElementById('zDepthLabel');
+        const xRangeSlider = document.getElementById('xRangeSlider');
+        const xRangeLabel = document.getElementById('xRangeLabel');
+        const yRangeSlider = document.getElementById('yRangeSlider');
+        const yRangeLabel = document.getElementById('yRangeLabel');
+        const zAxisRangeSlider = document.getElementById('zAxisRangeSlider');
+        const zAxisRangeLabel = document.getElementById('zAxisRangeLabel');
+
+        const speedSlider = document.getElementById('speedSlider');
+        const speedLabel = document.getElementById('speedLabel');
+        const invertToggle = document.getElementById('invertToggle');
+        const renderGifBtn = document.getElementById('renderGifBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const progressFill = document.getElementById('progressFill');
+        const loadingText = document.getElementById('loadingText');
+
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
+        const zoomLabel = document.getElementById('zoomLabel');
+        const zoomWrapper = document.getElementById('zoomWrapper');
+        const workspace = document.getElementById('workspace');
+
+        // --- State ---
+        let pixels = []; // {x, y, w, h, fill, randOffset, randSpeed}
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let activeModes = new Set();
+        let activeFX = new Set();
+        let playMode = 'together'; // 'together' or 'sequence'
+        let animationSpeed = 1.0;
+        let frameCount = 0;
+        let isRendering = false;
+        let animationId;
+        
+        // Intensity State (NEW)
+        let motionIntensities = {};
+        
+        // Viewport State (Zoom & Pan)
+        let currentZoom = 1;
+        let panX = 0;
+        let panY = 0;
+        let isPanning = false;
+        let startPanX = 0;
+        let startPanY = 0;
+
+        // Automatische Zoom-Anpassung bei Fensteränderung (hält das Canvas immer im Blick)
+        window.addEventListener('resize', () => {
+            if (workspace && animCanvas.width > 0) {
+                currentZoom = Math.min(
+                    (workspace.clientWidth - 100) / animCanvas.width,
+                    (workspace.clientHeight - 100) / animCanvas.height,
+                    1
+                );
+                applyZoom(false);
+            }
+        });
+
+        // --- 0. Format Selection ---
+        function setFormat(type) {
+            fmtSquare.classList.remove('active');
+            fmtHDL.classList.remove('active');
+            fmtHDP.classList.remove('active');
+            fmtFHDL.classList.remove('active');
+            fmtFHDP.classList.remove('active');
+            
+            // Standardisierte, echte Auflösungen!
+            if (type === 'square') {
+                fmtSquare.classList.add('active');
+                animCanvas.width = 1080;
+                animCanvas.height = 1080;
+            } else if (type === 'hd_l') {
+                fmtHDL.classList.add('active');
+                animCanvas.width = 1280;
+                animCanvas.height = 720;
+            } else if (type === 'hd_p') {
+                fmtHDP.classList.add('active');
+                animCanvas.width = 720;
+                animCanvas.height = 1280;
+            } else if (type === 'fhd_l') {
+                fmtFHDL.classList.add('active');
+                animCanvas.width = 1920;
+                animCanvas.height = 1080;
+            } else if (type === 'fhd_p') {
+                fmtFHDP.classList.add('active');
+                animCanvas.width = 1080;
+                animCanvas.height = 1920;
+            }
+            
+            canvasWrapper.style.width = animCanvas.width + 'px';
+            canvasWrapper.style.height = animCanvas.height + 'px';
+            
+            // Zoom so anpassen, dass das Canvas sichtbar in der Mitte liegt
+            if (workspace) {
+                currentZoom = Math.min(
+                    (workspace.clientWidth - 100) / animCanvas.width,
+                    (workspace.clientHeight - 100) / animCanvas.height,
+                    1
+                );
+            }
+            panX = 0;
+            panY = 0;
+            applyZoom(true);
+        }
+
+        fmtSquare.addEventListener('click', () => setFormat('square'));
+        fmtHDL.addEventListener('click', () => setFormat('hd_l'));
+        fmtHDP.addEventListener('click', () => setFormat('hd_p'));
+        fmtFHDL.addEventListener('click', () => setFormat('fhd_l'));
+        fmtFHDP.addEventListener('click', () => setFormat('fhd_p'));
+        
+        // Initial setup
+        setFormat('square');
+
+
+        // Noise Generator for Grain
+        const noiseCanvas = document.createElement('canvas');
+        noiseCanvas.width = 250; 
+        noiseCanvas.height = 250;
+        const nCtx = noiseCanvas.getContext('2d');
+        const noiseData = nCtx.createImageData(250, 250);
+        for(let i = 0; i < noiseData.data.length; i += 4) {
+            const val = Math.random() * 255;
+            noiseData.data[i] = val;
+            noiseData.data[i+1] = val;
+            noiseData.data[i+2] = val;
+            noiseData.data[i+3] = 255;
+        }
+        nCtx.putImageData(noiseData, 0, 0);
+
+        function getCSSVar(name) { return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+        // --- 1. SVG Parsing & Live Voxelization ---
+        
+        // Import Mode Listeners
+        importModePixel.addEventListener('click', () => {
+            importModePixel.classList.add('active');
+            importModeVector.classList.remove('active');
+            vectorSettings.style.display = 'none';
+            currentImportMode = 'pixel';
+            if (currentSVGString) parseSVG(currentSVGString);
+        });
+
+        importModeVector.addEventListener('click', () => {
+            importModeVector.classList.add('active');
+            importModePixel.classList.remove('active');
+            vectorSettings.style.display = 'block';
+            currentImportMode = 'vector';
+            if (currentSVGString) parseSVG(currentSVGString);
+        });
+
+        svgUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                currentSVGString = event.target.result;
+                
+                // --- SMART AUTO-DETECT ---
+                // Prüft ob die Datei Vektor-Pfade enthält oder nur reine Pixel-Rechtecke
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(currentSVGString, "image/svg+xml");
+                const hasVectors = doc.querySelectorAll('path, circle, ellipse, polygon, polyline, text').length > 0;
+                
+                if (hasVectors) {
+                    importModeVector.click(); // Wechselt UI und parst als Vektor
+                } else {
+                    importModePixel.click();  // Wechselt UI und behält Original-Pixel
+                }
+
+                fileInfo.style.display = 'block';
+                fileInfo.textContent = `Loaded: ${file.name}`;
+            };
+            reader.readAsText(file);
+        });
+
+        pixelDetailSlider.addEventListener('input', (e) => {
+            pixelDetailLabel.textContent = e.target.value + 'px';
+        });
+        pixelDetailSlider.addEventListener('change', (e) => {
+            if (currentSVGString && currentImportMode === 'vector') {
+                parseSVG(currentSVGString);
+            }
+        });
+
+        // Hilfsfunktion zum finalen Platzieren des fertig geparsten Objekts
+        function finalizeSVGImport(finalSvgW, finalSvgH) {
+            let initialScale = Math.min(800 / finalSvgW, 800 / finalSvgH, 1);
+            objScaleSlider.value = initialScale;
+            objScaleLabel.textContent = initialScale.toFixed(1) + 'x';
+            objXSlider.value = 0;
+            objYSlider.value = 0;
+
+            if (workspace) {
+                currentZoom = Math.min(
+                    (workspace.clientWidth - 100) / animCanvas.width,
+                    (workspace.clientHeight - 100) / animCanvas.height,
+                    1
+                );
+            }
+            panX = 0;
+            panY = 0;
+            applyZoom(false);
+
+            frameCount = 0;
+            if (animationId) cancelAnimationFrame(animationId);
+            animate();
+        }
+
+        function parseSVG(svgString) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgString, "image/svg+xml");
+            const svgElement = doc.querySelector('svg');
+            
+            if(!svgElement) { alert("Invalid SVG file."); return; }
+
+            // Lese Original-Größen oder viewBox aus
+            let w = parseFloat(svgElement.getAttribute('width'));
+            let h = parseFloat(svgElement.getAttribute('height'));
+            
+            if (!w || isNaN(w) || !h || isNaN(h)) {
+                const vb = svgElement.getAttribute('viewBox');
+                if (vb) {
+                    const vbp = vb.split(/[\s,]+/);
+                    w = parseFloat(vbp[2]);
+                    h = parseFloat(vbp[3]);
+                } else {
+                    w = 800; h = 600; // Fallback
+                }
+            }
+
+            if (currentImportMode === 'pixel') {
+                // --- CLASSIC MODE: Exaktes Beibehalten der Original SVG-Pixel ---
+                svgWidth = w;
+                svgHeight = h;
+                const rects = doc.querySelectorAll('rect');
+                pixels = [];
+                
+                rects.forEach(rect => {
+                    pixels.push({
+                        x: parseFloat(rect.getAttribute('x')),
+                        y: parseFloat(rect.getAttribute('y')),
+                        w: parseFloat(rect.getAttribute('width')),
+                        h: parseFloat(rect.getAttribute('height')),
+                        fill: rect.getAttribute('fill') || '#000000',
+                        randOffset: Math.random() * Math.PI * 2,
+                        randSpeed: 0.5 + Math.random()
+                    });
+                });
+                
+                finalizeSVGImport(svgWidth, svgHeight);
+
+            } else {
+                // --- VECTOR MODE: Rasterisiert Logos und Pfade in ein Voxel-Gitter ---
+                if (!svgElement.getAttribute('xmlns')) {
+                    svgElement.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+                const cleanSvgString = new XMLSerializer().serializeToString(svgElement);
+                const blob = new Blob([cleanSvgString], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                
+                const img = new Image();
+                img.onload = () => {
+                    const maxRes = parseInt(pixelDetailSlider.value); 
+                    const ratio = Math.min(maxRes / w, maxRes / h);
+                    const resW = Math.max(1, Math.round(w * ratio));
+                    const resH = Math.max(1, Math.round(h * ratio));
+
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = resW;
+                    tempCanvas.height = resH;
+                    const tCtx = tempCanvas.getContext('2d');
+                    
+                    tCtx.drawImage(img, 0, 0, resW, resH);
+                    const imgData = tCtx.getImageData(0, 0, resW, resH).data;
+
+                    pixels = [];
+                    const pixelSize = 10; 
+                    
+                    svgWidth = resW * pixelSize;
+                    svgHeight = resH * pixelSize;
+
+                    for (let py = 0; py < resH; py++) {
+                        for (let px = 0; px < resW; px++) {
+                            const i = (py * resW + px) * 4;
+                            const a = imgData[i + 3];
+                            
+                            if (a > 10) { 
+                                const r = imgData[i];
+                                const g = imgData[i + 1];
+                                const b = imgData[i + 2];
+                                const hex = "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+                                
+                                pixels.push({
+                                    x: px * pixelSize,
+                                    y: py * pixelSize,
+                                    w: pixelSize,
+                                    h: pixelSize,
+                                    fill: hex,
+                                    randOffset: Math.random() * Math.PI * 2,
+                                    randSpeed: 0.5 + Math.random()
+                                });
+                            }
+                        }
+                    }
+                    
+                    URL.revokeObjectURL(url); 
+                    finalizeSVGImport(svgWidth, svgHeight);
+                };
+                img.src = url;
+            }
+        }
+
+        // --- 1b. Transform UI ---
+        objScaleSlider.addEventListener('input', (e) => {
+            objScaleLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        });
+
+        // --- 1c. Background UI ---
+        toggleCustomBg.addEventListener('change', () => {
+            bgColorsWrapper.style.display = toggleCustomBg.checked ? 'block' : 'none';
+        });
+
+        addBgColorBtn.addEventListener('click', () => {
+            const currentInputs = bgColorsList.querySelectorAll('.bg-color-input');
+            if (currentInputs.length < 5) {
+                const newInput = document.createElement('input');
+                newInput.type = 'color';
+                newInput.className = 'bg-color-input';
+                // Wähle eine markante Default-Farbe für die neuen Boxen
+                const defColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+                newInput.value = defColors[currentInputs.length];
+                bgColorsList.appendChild(newInput);
+            }
+        });
+
+        remBgColorBtn.addEventListener('click', () => {
+            const currentInputs = bgColorsList.querySelectorAll('.bg-color-input');
+            if (currentInputs.length > 1) {
+                bgColorsList.removeChild(currentInputs[currentInputs.length - 1]);
+            }
+        });
+
+        targetBgBtn.addEventListener('click', () => {
+            targetBgBtn.classList.add('active');
+            targetOutlineBtn.classList.remove('active');
+        });
+        // --- 1c. Material UI ---
+        toggleMaterial.addEventListener('change', () => {
+            materialWrapper.style.display = toggleMaterial.checked ? 'block' : 'none';
+        });
+
+        const resetMatTargetBtns = () => {
+            matTargetFillBtn.classList.remove('active');
+            matTargetOutlineBtn.classList.remove('active');
+            matTargetBothBtn.classList.remove('active');
+        };
+
+        matTargetFillBtn.addEventListener('click', () => { resetMatTargetBtns(); matTargetFillBtn.classList.add('active'); matTarget = 'fill'; });
+        matTargetOutlineBtn.addEventListener('click', () => { resetMatTargetBtns(); matTargetOutlineBtn.classList.add('active'); matTarget = 'outline'; });
+        matTargetBothBtn.addEventListener('click', () => { resetMatTargetBtns(); matTargetBothBtn.classList.add('active'); matTarget = 'both'; });
+
+        const resetMatBtns = () => {
+            matSteelBtn.classList.remove('active');
+            matSilverBtn.classList.remove('active');
+            matChromeBtn.classList.remove('active');
+        };
+
+        matSteelBtn.addEventListener('click', () => { resetMatBtns(); matSteelBtn.classList.add('active'); activeMaterial = 'steel'; });
+        matSilverBtn.addEventListener('click', () => { resetMatBtns(); matSilverBtn.classList.add('active'); activeMaterial = 'silver'; });
+        matChromeBtn.addEventListener('click', () => { resetMatBtns(); matChromeBtn.classList.add('active'); activeMaterial = 'chrome'; });
+
+        // --- 1c. Extended Controls Listeners ---
+        colorSpeedSlider.addEventListener('input', (e) => {
+            colorSpeedLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        });
+
+        // --- 1d. 3D Control UI ---
+        zDepthSlider.addEventListener('input', (e) => {
+            zDepthLabel.textContent = e.target.value + ' Lyr';
+        });
+        xRangeSlider.addEventListener('input', (e) => {
+            xRangeLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        });
+        yRangeSlider.addEventListener('input', (e) => {
+            yRangeLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        });
+        zAxisRangeSlider.addEventListener('input', (e) => {
+            zAxisRangeLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        });
+
+        // --- 2. Viewport UI (Zoom & Pan) ---
+        function applyZoom(smooth = false) {
+            if (smooth) {
+                zoomWrapper.classList.add('smooth-zoom');
+            } else {
+                zoomWrapper.classList.remove('smooth-zoom');
+            }
+            
+            zoomWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+            zoomLabel.textContent = `${Math.round(currentZoom * 100)}%`;
+            
+            if (smooth) {
+                setTimeout(() => zoomWrapper.classList.remove('smooth-zoom'), 150);
+            }
+        }
+
+        zoomInBtn.addEventListener('click', () => { currentZoom = Math.min(currentZoom + 0.2, 5); applyZoom(true); });
+        zoomOutBtn.addEventListener('click', () => { currentZoom = Math.max(currentZoom - 0.2, 0.2); applyZoom(true); });
+
+        // Scrollen mit Strg/Cmd + Mausrad für Zoom
+        workspace.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                if (e.deltaY > 0) currentZoom = Math.max(currentZoom - 0.1, 0.2);
+                else currentZoom = Math.min(currentZoom + 0.1, 5);
+                applyZoom(false);
+            }
+        }, { passive: false });
+
+        // Panning (Verschieben per Drag & Drop)
+        workspace.addEventListener('mousedown', (e) => {
+            // Klicks auf Buttons oder das Panel ignorieren
+            if (e.target.closest('.top-right-controls') || e.target.closest('#settingsPanel')) return;
+            
+            isPanning = true;
+            startPanX = e.clientX - panX;
+            startPanY = e.clientY - panY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            panX = e.clientX - startPanX;
+            panY = e.clientY - startPanY;
+            applyZoom(false);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+        });
+
+
+        // --- 3. Multi-Select & Sequences UI ---
+        btnPlayTogether.addEventListener('click', () => {
+            playMode = 'together';
+            btnPlayTogether.classList.add('active');
+            btnPlaySequence.classList.remove('active');
+        });
+
+        btnPlaySequence.addEventListener('click', () => {
+            playMode = 'sequence';
+            btnPlaySequence.classList.add('active');
+            btnPlayTogether.classList.remove('active');
+        });
+
+        btnStatic.addEventListener('click', () => {
+            activeModes.clear();
+            motionButtons.forEach(b => b.classList.remove('active'));
+            btnStatic.classList.add('active');
+            updateIntensityUI();
+        });
+
+        motionButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.getAttribute('data-mode');
+                if (activeModes.has(mode)) {
+                    activeModes.delete(mode);
+                    btn.classList.remove('active');
+                } else {
+                    activeModes.add(mode);
+                    btn.classList.add('active');
+                }
+                if (activeModes.size === 0) btnStatic.classList.add('active');
+                else btnStatic.classList.remove('active');
+                
+                updateIntensityUI();
+            });
+        });
+
+        // Dynamic Intensity UI Builder
+        function updateIntensityUI() {
+            const container = document.getElementById('intensityContainer');
+            container.innerHTML = ''; 
+            
+            if (activeModes.size === 0) {
+                container.innerHTML = '<p class="small">Activate a motion to adjust intensity.</p>';
+                return;
+            }
+
+            activeModes.forEach(mode => {
+                if (motionIntensities[mode] === undefined) motionIntensities[mode] = 1.0;
+                
+                const val = motionIntensities[mode];
+                const row = document.createElement('div');
+                row.style.marginBottom = '10px';
+                row.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">${mode} Intensity</label>
+                        <span class="raster" style="font-size: 1.2em;" id="val-${mode}">${val.toFixed(1)}x</span>
+                    </div>
+                    <input type="range" data-mode="${mode}" min="0" max="3" value="${val}" step="0.1">
+                `;
+                
+                const slider = row.querySelector('input');
+                slider.addEventListener('input', (e) => {
+                    const newVal = parseFloat(e.target.value);
+                    motionIntensities[mode] = newVal;
+                    row.querySelector(`#val-${mode}`).textContent = newVal.toFixed(1) + 'x';
+                });
+                
+                container.appendChild(row);
+            });
+        }
+
+        fxButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const fx = btn.getAttribute('data-fx');
+                if (activeFX.has(fx)) {
+                    activeFX.delete(fx);
+                    btn.classList.remove('active');
+                } else {
+                    activeFX.add(fx);
+                    btn.classList.add('active');
+                }
+            });
+        });
+
+        speedSlider.addEventListener('input', (e) => {
+            animationSpeed = parseFloat(e.target.value);
+            speedLabel.textContent = animationSpeed.toFixed(1) + 'x';
+        });
+
+        invertToggle.addEventListener('click', () => {
+            document.body.classList.toggle('inverted');
+        });
+
+        // --- 4. Animation Engine ---
+        function drawFrame(timeFrame) {
+            // Determine Animated Color First
+            let animatedColor = null;
+            if (toggleCustomBg.checked) {
+                const bgInputs = document.querySelectorAll('.bg-color-input');
+                const bgColors = Array.from(bgInputs).map(inp => inp.value);
+                if (bgColors.length === 1) {
+                    animatedColor = bgColors[0];
+                } else {
+                    const cSpeed = parseFloat(colorSpeedSlider.value);
+                    const phase = Math.floor((timeFrame * cSpeed) / 10) % bgColors.length;
+                    animatedColor = bgColors[phase];
+                }
+            }
+
+            const colorTarget = targetBgBtn.classList.contains('active') ? 'background' : 'outline';
+
+            // Background Layer (nutzt jetzt die volle Canvas-Größe inkl. Padding)
+            if (animatedColor && colorTarget === 'background') {
+                ctx.fillStyle = animatedColor;
+            } else {
+                ctx.fillStyle = getCSSVar('--canvas-bg');
+            }
+            ctx.fillRect(0, 0, animCanvas.width, animCanvas.height);
+
+            // Logik-Anpassung: Default ist jetzt Dunkel, Inverted ist Hell
+            const isDark = !document.body.classList.contains('inverted');
+
+            // --- Sequence Logic ---
+            const modesArr = Array.from(activeModes);
+            let activeSequenceMode = null;
+            if (playMode === 'sequence' && modesArr.length > 0) {
+                // Switch animation every ~20 frames
+                const phase = Math.floor((timeFrame * animationSpeed) / 20) % modesArr.length;
+                activeSequenceMode = modesArr[phase];
+            }
+
+            const isActive = (mode) => {
+                if (playMode === 'together') return activeModes.has(mode);
+                return activeSequenceMode === mode;
+            };
+
+            const getInt = (mode) => {
+                return motionIntensities[mode] !== undefined ? motionIntensities[mode] : 1.0;
+            };
+
+            // --- GLOBAL TRANSFORMS ---
+            ctx.save();
+            let globalOffsetX = 0, globalOffsetY = 0, globalScaleX = 1, globalScaleY = 1, globalAngle = 0;
+
+            if (isActive('bounce')) {
+                globalOffsetY = -Math.abs(Math.sin(timeFrame * 0.1 * animationSpeed)) * 60 * getInt('bounce');
+            }
+            if (isActive('shake')) {
+                globalOffsetX = (Math.random() - 0.5) * 15 * animationSpeed * getInt('shake');
+                globalOffsetY = (Math.random() - 0.5) * 15 * animationSpeed * getInt('shake');
+            }
+            if (isActive('rotate')) {
+                globalAngle = timeFrame * 0.05 * animationSpeed * getInt('rotate');
+            }
+            if (isActive('swing')) {
+                globalAngle = Math.sin(timeFrame * 0.05 * animationSpeed) * 0.4 * getInt('swing');
+            }
+            if (isActive('stretch')) {
+                globalScaleY = 1 + Math.sin(timeFrame * 0.1 * animationSpeed) * 0.4 * getInt('stretch');
+                globalScaleX = 1 - Math.sin(timeFrame * 0.1 * animationSpeed) * 0.1 * getInt('stretch');
+            }
+
+            // Die neue Mitte ist exakt das Zentrum des ausgewählten Canvas-Formats
+            const screenCenterX = animCanvas.width / 2;
+            const screenCenterY = animCanvas.height / 2;
+            const svgCenterX = svgWidth / 2;
+            const svgCenterY = svgHeight / 2;
+
+            // Manuelle Transformationen (Offset & Scale des Objekts)
+            const manualX = parseFloat(objXSlider.value);
+            const manualY = parseFloat(objYSlider.value);
+            const manualScale = parseFloat(objScaleSlider.value);
+
+            // 3D Achsen-Multiplikatoren abgreifen
+            const xRangeMultiplier = parseFloat(xRangeSlider.value);
+            const yRangeMultiplier = parseFloat(yRangeSlider.value);
+            const zRangeMultiplier = parseFloat(zAxisRangeSlider.value);
+
+            // --- 3D MATH PREPARATION (SOFTER, MORE NATURAL MOTIONS) ---
+            let angleY = 0; // Yaw
+            let angleX = 0; // Pitch
+            let angleZ = 0; // Roll
+            const fov = 800; // Brennweite
+
+            if (isActive('spin3d')) {
+                // Ein weiches, sanftes Taumeln
+                angleY = timeFrame * 0.025 * animationSpeed * getInt('spin3d');
+                angleX = Math.sin(timeFrame * 0.01 * animationSpeed) * 0.15 * getInt('spin3d');
+                angleZ = Math.cos(timeFrame * 0.015 * animationSpeed) * 0.1 * getInt('spin3d');
+            }
+            if (isActive('flip3d')) {
+                angleX = timeFrame * 0.03 * animationSpeed * getInt('flip3d');
+                angleY = Math.sin(timeFrame * 0.02 * animationSpeed) * 0.15 * getInt('flip3d'); 
+            }
+            if (isActive('tilt3d')) {
+                angleX = Math.sin(timeFrame * 0.03 * animationSpeed) * 0.3 * getInt('tilt3d');
+                angleZ = Math.cos(timeFrame * 0.02 * animationSpeed) * 0.1 * getInt('tilt3d'); 
+            }
+            if (isActive('wobble3d')) {
+                angleY = timeFrame * 0.02 * animationSpeed * getInt('wobble3d');
+                angleX = Math.sin(timeFrame * 0.025 * animationSpeed) * 0.25 * getInt('wobble3d');
+                angleZ = Math.sin(timeFrame * 0.03 * animationSpeed) * 0.15 * getInt('wobble3d');
+            }
+            if (isActive('leaf3d')) {
+                angleX = Math.sin(timeFrame * 0.02 * animationSpeed) * 0.25 * getInt('leaf3d');
+                angleY = Math.cos(timeFrame * 0.015 * animationSpeed) * 0.15 * getInt('leaf3d');
+                angleZ = Math.sin(timeFrame * 0.02 * animationSpeed) * 0.1 * getInt('leaf3d'); 
+                globalOffsetX += Math.sin(timeFrame * 0.03 * animationSpeed) * 8 * getInt('leaf3d');
+                globalOffsetY += Math.cos(timeFrame * 0.04 * animationSpeed) * 4 * getInt('leaf3d');
+            }
+
+            // Achsen-Dämpfung/Verstärkung anwenden
+            angleX *= xRangeMultiplier;
+            angleY *= yRangeMultiplier;
+            angleZ *= zRangeMultiplier;
+
+            // Z-Depth Layers ermitteln
+            const zLayers = parseInt(zDepthSlider.value);
+            const zSpacing = 6; 
+
+            // --- PRE-CALCULATE PIXEL POSITIONS FOR ALL 3D LAYERS ---
+            // Die Positionen werden jetzt perfekt auf 0,0 (das Objekt-Zentrum) berechnet, 
+            // damit wir das fertige Artefakt danach problemlos im Grid klonen können!
+            const framePixels = [];
+
+            for (let layer = 0; layer < zLayers; layer++) {
+                pixels.forEach(p => {
+                    let x = p.x;
+                    let y = p.y;
+                    let fill = p.fill;
+                    let alpha = 1.0;
+                    
+                    // --- LOCAL TRANSFORMS (2D) ---
+                    if (isActive('wave')) {
+                        y += Math.sin(timeFrame * 0.1 * animationSpeed + x * 0.05) * 15 * getInt('wave');
+                    } 
+                    if (isActive('ripple')) {
+                        let dist = Math.sqrt(Math.pow(x - svgCenterX, 2) + Math.pow(y - svgCenterY, 2));
+                        y += Math.sin(dist * 0.05 - timeFrame * 0.2 * animationSpeed) * 15 * getInt('ripple');
+                    }
+                    if (isActive('float')) {
+                        x += Math.sin(timeFrame * 0.05 * animationSpeed * p.randSpeed + p.randOffset) * 10 * getInt('float');
+                        y += Math.cos(timeFrame * 0.05 * animationSpeed * p.randSpeed + p.randOffset) * 10 * getInt('float');
+                    }
+                    if (isActive('jitter')) {
+                        x += (Math.random() - 0.5) * 8 * animationSpeed * getInt('jitter');
+                        y += (Math.random() - 0.5) * 8 * animationSpeed * getInt('jitter');
+                    }
+                    if (isActive('glitch')) {
+                        if (Math.random() > 0.95) {
+                            x += (Math.random() - 0.5) * 50 * animationSpeed * getInt('glitch');
+                            fill = isDark ? '#ffffff' : '#000000'; 
+                        }
+                        if (Math.sin(timeFrame * 0.5 + y) > 0.9) x -= 20 * getInt('glitch');
+                    }
+                    if (isActive('pulse')) {
+                        const scale = 1 + Math.sin(timeFrame * 0.1 * animationSpeed) * 0.15 * getInt('pulse');
+                        x = svgCenterX + (x - svgCenterX) * scale;
+                        y = svgCenterY + (y - svgCenterY) * scale;
+                    }
+                    if (isActive('scanline')) {
+                        const scanPos = (timeFrame * 5 * animationSpeed) % (svgHeight + 100) - 50;
+                        if (Math.abs(y - scanPos) < 20) {
+                            fill = isDark ? '#ffffff' : '#000000'; 
+                            alpha = 0.8;
+                            x += (Math.random() - 0.5) * 15 * getInt('scanline');
+                        }
+                    }
+
+                    // --- 3D PROJECTION ENGINE ---
+                    let px_3d = x - svgCenterX;
+                    let py_3d = y - svgCenterY;
+                    
+                    let pz_3d = -(layer * zSpacing);
+
+                    if (isActive('breathe3d')) {
+                        let distToCenter = Math.sqrt(Math.pow(px_3d, 2) + Math.pow(py_3d, 2));
+                        let zExpand = Math.sin(timeFrame * 0.08 * animationSpeed) * 2 * getInt('breathe3d');
+                        pz_3d += (distToCenter * 0.05) * zExpand;
+                    }
+
+                    // --- FULL EULER 3D ROTATION ---
+                    let px1 = px_3d * Math.cos(angleY) - pz_3d * Math.sin(angleY);
+                    let py1 = py_3d;
+                    let pz1 = px_3d * Math.sin(angleY) + pz_3d * Math.cos(angleY);
+
+                    let px2 = px1;
+                    let py2 = py1 * Math.cos(angleX) - pz1 * Math.sin(angleX);
+                    let pz2 = py1 * Math.sin(angleX) + pz1 * Math.cos(angleX);
+
+                    let px3 = px2 * Math.cos(angleZ) - py2 * Math.sin(angleZ);
+                    let py3 = px2 * Math.sin(angleZ) + py2 * Math.cos(angleZ);
+                    let pz3 = pz2;
+
+                    let scale3d = fov / (fov + pz3);
+                    
+                    // x und y sind jetzt um 0,0 zentriert
+                    x = px3 * scale3d;
+                    y = py3 * scale3d;
+                    let w3d = p.w * scale3d;
+                    let h3d = p.h * scale3d;
+
+                    // MAIN PASS THEME & FILL
+                    if (toggleFill.checked) {
+                        fill = colorFill.value;
+                    } else {
+                        if (isDark) {
+                            if (fill === 'rgb(0,0,0)' || fill === '#000000') fill = '#ffffff';
+                            else if (fill === 'rgb(255,255,255)' || fill === '#ffffff') fill = '#000000';
+                        }
+                    }
+
+                    // Wir speichern den layerIndex für echte 3D-Schattierungen
+                    framePixels.push({ x, y, w: w3d, h: h3d, fill, alpha, z: pz3, scale: scale3d, isBackLayer: layer > 0, layerIndex: layer });
+                });
+            }
+
+            // WICHTIG: Tiefensortierung (Z-Index) für perfekten 3D-Körper
+            framePixels.sort((a, b) => b.z - a.z);
+
+            // --- SEPARATED ROTATING METALLIC TEXTURES (BEVEL EFFECT) ---
+            let metallicGradMain = null;
+            let metallicGradOutline = null;
+
+            if (toggleMaterial.checked) {
+                const gradRadius = Math.max(svgWidth, svgHeight) * 0.8; 
+
+                // 1. MAIN GRADIENT (Seidenweiche Rotation um das Zentrum für das Innere)
+                const gradAngleMain = timeFrame * 0.05 * animationSpeed;
+                const gXMain = Math.cos(gradAngleMain) * gradRadius;
+                const gYMain = Math.sin(gradAngleMain) * gradRadius;
+                metallicGradMain = ctx.createLinearGradient(-gXMain, -gYMain, gXMain, gYMain);
+
+                // 2. OUTLINE GRADIENT (180 Grad Phasenverschiebung)
+                // Dadurch fängt die Umrandung das Licht spiegelverkehrt ein und wirkt wie eine 
+                // physisch abgeschrägte, massive 3D-Kante (Bevel), die sich stark vom Inneren abhebt!
+                const gradAngleOutline = gradAngleMain + Math.PI; 
+                const gXOut = Math.cos(gradAngleOutline) * gradRadius;
+                const gYOut = Math.sin(gradAngleOutline) * gradRadius;
+                metallicGradOutline = ctx.createLinearGradient(-gXOut, -gYOut, gXOut, gYOut);
+
+                // Helper: Farben für beide Verläufe identisch befüllen
+                const applyColors = (grad) => {
+                    if (activeMaterial === 'chrome') {
+                        grad.addColorStop(0, '#ffffff');
+                        grad.addColorStop(0.4, '#aaddff'); 
+                        grad.addColorStop(0.5, '#222222'); 
+                        grad.addColorStop(0.55, '#000000');
+                        grad.addColorStop(1, '#666666'); 
+                    } else if (activeMaterial === 'steel') {
+                        grad.addColorStop(0, '#e2e4e6');
+                        grad.addColorStop(0.3, '#ffffff');
+                        grad.addColorStop(0.5, '#7a8288');
+                        grad.addColorStop(0.7, '#d3d7cf');
+                        grad.addColorStop(1, '#555753');
+                    } else if (activeMaterial === 'silver') {
+                        grad.addColorStop(0, '#888888');
+                        grad.addColorStop(0.3, '#eeeeee');
+                        grad.addColorStop(0.5, '#bbbbbb');
+                        grad.addColorStop(0.7, '#ffffff');
+                        grad.addColorStop(1, '#555555');
+                    }
+                };
+
+                applyColors(metallicGradMain);
+                applyColors(metallicGradOutline);
+            }
+
+            // Render Pass Function (NOW USES OFFSCREEN CONTEXT)
+            const renderPixels = (passType, tgtCtx) => {
+                const outlineWidth = parseInt(widthOutline.value);
+
+                framePixels.forEach(p => {
+                    let renderX = p.x;
+                    let renderY = p.y;
+                    let renderW = p.w;
+                    let renderH = p.h;
+
+                    // --- STYLING RULES ---
+                    if (passType === 'outline') {
+                        let ow = outlineWidth * p.scale; 
+                        let useMetalOutline = toggleMaterial.checked && metallicGradOutline && (matTarget === 'outline' || matTarget === 'both');
+
+                        // Base Outline
+                        if (useMetalOutline) {
+                            tgtCtx.fillStyle = metallicGradOutline;
+                            tgtCtx.strokeStyle = metallicGradOutline;
+                        } else if (animatedColor && colorTarget === 'outline') {
+                            tgtCtx.fillStyle = animatedColor;
+                            tgtCtx.strokeStyle = animatedColor;
+                        } else {
+                            tgtCtx.fillStyle = colorOutline.value;
+                            tgtCtx.strokeStyle = colorOutline.value;
+                        }
+                        
+                        tgtCtx.lineJoin = 'round';
+                        tgtCtx.lineWidth = ow * 2;
+                        
+                        if(p.isBackLayer) tgtCtx.lineWidth = (ow * 2) * 1.5;
+
+                        tgtCtx.strokeRect(renderX, renderY, renderW, renderH);
+                        tgtCtx.fillRect(renderX, renderY, renderW, renderH);
+
+                        if (p.isBackLayer && useMetalOutline) {
+                            tgtCtx.fillStyle = `rgba(0,0,0,${Math.min(0.4, p.layerIndex * 0.08)})`;
+                            tgtCtx.fillRect(renderX - ow, renderY - ow, renderW + (ow*2), renderH + (ow*2));
+                        }
+                        return;
+                    }
+
+                    // MAIN PASS (Inneres des SVGs)
+                    if (passType === 'main') {
+                        tgtCtx.globalAlpha = p.alpha;
+                        
+                        let useMetalFill = toggleMaterial.checked && metallicGradMain && (matTarget === 'fill' || matTarget === 'both');
+
+                        if (useMetalFill) {
+                            tgtCtx.fillStyle = metallicGradMain;
+                            tgtCtx.fillRect(renderX, renderY, renderW, renderH);
+
+                            const isBlackOrWhite = p.fill === '#000000' || p.fill === '#ffffff' || p.fill === 'rgb(0,0,0)' || p.fill === 'rgb(255,255,255)';
+                            
+                            if (!isBlackOrWhite) {
+                                // Damit das Metall nicht durchsichtig wird, kurz speichern und zurücksetzen
+                                const prevBlend = tgtCtx.globalCompositeOperation;
+                                tgtCtx.globalCompositeOperation = 'overlay';
+                                tgtCtx.globalAlpha = p.alpha * 0.7; 
+                                tgtCtx.fillStyle = p.fill;
+                                tgtCtx.fillRect(renderX, renderY, renderW, renderH);
+                                tgtCtx.globalCompositeOperation = prevBlend; 
+                            }
+                        } else {
+                            tgtCtx.fillStyle = p.fill;
+                            tgtCtx.fillRect(renderX, renderY, renderW, renderH);
+                        }
+
+                        if (p.isBackLayer) {
+                            tgtCtx.fillStyle = `rgba(0,0,0,${Math.min(0.4, p.layerIndex * 0.05)})`;
+                            tgtCtx.fillRect(renderX, renderY, renderW, renderH);
+                        }
+
+                        tgtCtx.globalAlpha = 1.0;
+                    }
+                });
+            };
+
+            // --- ADOBE STYLE OFFSCREEN RENDERING ---
+            // Wir rendern das EINE fertige 3D-Objekt komplett sauber auf einen unsichtbaren Layer.
+            // Dadurch werden interne Überschneidungen nicht geblendet!
+            if (!window.offCanvas) {
+                window.offCanvas = document.createElement('canvas');
+                window.offCtx = window.offCanvas.getContext('2d');
+                window.offSize = 4000; // Genug Platz auch für stark vergrößerte Objekte
+                window.offCanvas.width = window.offSize;
+                window.offCanvas.height = window.offSize;
+            }
+            window.offCtx.clearRect(0, 0, window.offSize, window.offSize);
+            
+            window.offCtx.save();
+            window.offCtx.translate(window.offSize / 2, window.offSize / 2);
+
+            const isAnimOutline = (animatedColor && colorTarget === 'outline');
+            if (toggleOutline.checked || isAnimOutline) renderPixels('outline', window.offCtx);
+            renderPixels('main', window.offCtx);
+            
+            window.offCtx.restore();
+
+            // --- GRID RENDER LOOP ---
+            const repX = parseInt(repeatXSlider.value);
+            const repY = parseInt(repeatYSlider.value);
+            const gapX = parseInt(gapXSlider.value);
+            const gapY = parseInt(gapYSlider.value);
+
+            const startX = -((repX - 1) * gapX) / 2;
+            const startY = -((repY - 1) * gapY) / 2;
+
+            for (let rx = 0; rx < repX; rx++) {
+                for (let ry = 0; ry < repY; ry++) {
+                    ctx.save();
+                    
+                    let finalX = screenCenterX + globalOffsetX + manualX + startX + (rx * gapX);
+                    let finalY = screenCenterY + globalOffsetY + manualY + startY + (ry * gapY);
+                    
+                    ctx.translate(finalX, finalY);
+                    
+                    ctx.rotate(globalAngle);
+                    ctx.scale(globalScaleX * manualScale, globalScaleY * manualScale);
+
+                    // --- ECHTES ADOBE BLENDING ---
+                    if (blendModeSelect) {
+                        ctx.globalCompositeOperation = blendModeSelect.value;
+                    }
+
+                    // Wir stempeln das fertig berechnete Objekt als GANZES auf den Bildschirm.
+                    // Jetzt blendet das Objekt nur noch mit dem Hintergrund und den Klonen!
+                    ctx.drawImage(window.offCanvas, -window.offSize / 2, -window.offSize / 2);
+                    
+                    ctx.restore();
+                }
+            }
+            
+            // Wichtig: Blending nach dem Grid zurücksetzen!
+            ctx.globalCompositeOperation = 'source-over';
+
+            // --- POST-FX LAYER ---
+            
+            // VHS TAPE EFFECT
+            if (activeFX.has('vhs')) {
+                // Tracking lines
+                ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, (timeFrame * 15 * animationSpeed) % animCanvas.height, animCanvas.width, 10);
+                ctx.fillRect(0, ((timeFrame * 15 * animationSpeed) + 100) % animCanvas.height, animCanvas.width, 3);
+                
+                // Random Slice Shifts
+                if (Math.random() > 0.7) {
+                    for(let i=0; i<3; i++) {
+                        let sy = Math.random() * animCanvas.height;
+                        let sh = Math.random() * 30;
+                        let dx = (Math.random() - 0.5) * 15;
+                        ctx.drawImage(animCanvas, 0, sy, animCanvas.width, sh, dx, sy, animCanvas.width, sh);
+                    }
+                }
+            }
+
+            // CRT GLOW
+            if (activeFX.has('crt')) {
+                ctx.save();
+                ctx.filter = 'blur(6px)';
+                ctx.globalCompositeOperation = isDark ? 'screen' : 'multiply';
+                ctx.globalAlpha = 0.5;
+                ctx.drawImage(animCanvas, 0, 0);
+                ctx.restore();
+            }
+
+            // GRAIN
+            if (activeFX.has('grain')) {
+                ctx.save();
+                ctx.globalCompositeOperation = isDark ? 'screen' : 'multiply';
+                ctx.globalAlpha = isDark ? 0.15 : 0.08;
+                const pat = ctx.createPattern(noiseCanvas, 'repeat');
+                ctx.fillStyle = pat;
+                // Move pattern randomly to animate grain
+                ctx.translate(Math.random() * 200, Math.random() * 200);
+                ctx.fillRect(-200, -200, animCanvas.width + 400, animCanvas.height + 400);
+                ctx.restore();
+            }
+        }
+
+        function animate() {
+            if (!isRendering) {
+                frameCount++;
+                drawFrame(frameCount);
+            }
+            animationId = requestAnimationFrame(animate);
+        }
+
+        drawFrame(0);
+
+        // --- 5. GIF EXPORT ---
+        renderGifBtn.addEventListener('click', () => {
+            if (pixels.length === 0) {
+                alert("Please upload an SVG artifact first.");
+                return;
+            }
+
+            isRendering = true;
+            loadingOverlay.style.display = 'flex';
+            loadingText.textContent = 'RENDERING FRAMES...';
+            progressFill.style.width = '0%';
+
+            // Use more frames if in Sequence Mode to capture all animations
+            const totalFrames = playMode === 'sequence' && activeModes.size > 0 ? activeModes.size * 20 : 30; 
+            const framesArray = [];
+            
+            for (let i = 0; i < totalFrames; i++) {
+                // Adjust simFrame based on play mode to guarantee smooth GIF capturing
+                const simFrame = playMode === 'sequence' ? i * (20 / animationSpeed) : i * (10 / animationSpeed); 
+                drawFrame(simFrame);
+                framesArray.push(animCanvas.toDataURL('image/png'));
+                progressFill.style.width = ((i / totalFrames) * 50) + '%';
+            }
+
+            loadingText.textContent = 'ENCODING GIF...';
+
+            let gifW = animCanvas.width;
+            let gifH = animCanvas.height;
+            const maxDimension = 1920; // Erhöht auf 1920, damit Full HD zu 100% scharf exportiert wird!
+            if(gifW > maxDimension || gifH > maxDimension) {
+                const ratio = Math.min(maxDimension / gifW, maxDimension / gifH);
+                gifW = Math.round(gifW * ratio);
+                gifH = Math.round(gifH * ratio);
+            }
+
+            gifshot.createGIF({
+                gifWidth: gifW,
+                gifHeight: gifH,
+                images: framesArray,
+                interval: 0.05, 
+                numFrames: totalFrames,
+                sampleInterval: 10, 
+                progressCallback: function(captureProgress) {
+                    progressFill.style.width = (50 + (captureProgress * 50)) + '%';
+                }
+            }, function(obj) {
+                if(!obj.error) {
+                    const image = obj.image;
+                    
+                    // Ladebildschirm ausblenden
+                    loadingOverlay.style.display = 'none';
+                    isRendering = false;
+                    
+                    // Ergebnisbildschirm anzeigen
+                    const resultOverlay = document.getElementById('resultOverlay');
+                    const resultGif = document.getElementById('resultGif');
+                    const downloadResultBtn = document.getElementById('downloadResultBtn');
+                    const closeResultBtn = document.getElementById('closeResultBtn');
+                    
+                    resultGif.src = image;
+                    resultOverlay.style.display = 'flex';
+                    
+                    // Sicherer Download über Blob-Konvertierung
+                    downloadResultBtn.onclick = () => {
+                        const base64Data = image.split(',')[1];
+                        const byteCharacters = atob(base64Data);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], {type: 'image/gif'});
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = 'pixel_artifact_anim.gif';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                    };
+                    
+                    closeResultBtn.onclick = () => {
+                        resultOverlay.style.display = 'none';
+                        resultGif.src = ''; 
+                    };
+
+                } else {
+                    alert("Error encoding GIF. Try a smaller file.");
+                    loadingOverlay.style.display = 'none';
+                    isRendering = false;
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
