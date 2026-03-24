@@ -7,8 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <!-- NEU: Bricolage Grotesque von Mathieu Triay -->
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
-    <!-- Externe Bibliothek für die GIF-Generierung -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
+    <!-- ECHTE TRANSPARENZ: gif.js statt gifshot -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <style>
         :root {
             /* STANDARD THEME IST JETZT DUNKEL */
@@ -259,6 +259,18 @@
             flex-shrink: 0; /* HIER: Verhindert, dass der Browser die HD-Formate zerquetscht! */
         }
 
+        /* NEU: Checkerboard Pattern für Transparenz-Vorschau */
+        .canvas-wrapper.transparent-bg {
+            background-color: transparent !important;
+            background-image: 
+                linear-gradient(45deg, var(--grid-dot) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--grid-dot) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--grid-dot) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--grid-dot) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
         canvas {
             display: block;
             width: 100%;
@@ -445,6 +457,11 @@
         <div class="control-group">
             <h3>3. St<span class="raster">yle</span></h3>
             
+            <!-- ZURÜCK: Transparent Background Toggle -->
+            <div class="style-row" style="margin-bottom: 2px;">
+                <label><input type="checkbox" id="toggleTransparentBg"> Transparent Background</label>
+            </div>
+
             <div class="style-row" style="margin-bottom: 2px;">
                 <label><input type="checkbox" id="toggleCustomBg"> Animated Colors</label>
             </div>
@@ -703,6 +720,8 @@
         const bgColorsList = document.getElementById('bgColorsList');
         const addBgColorBtn = document.getElementById('addBgColorBtn');
         const remBgColorBtn = document.getElementById('remBgColorBtn');
+        
+        const toggleTransparentBg = document.getElementById('toggleTransparentBg'); // ZURÜCK
         
         const targetBgBtn = document.getElementById('targetBgBtn');
         const targetOutlineBtn = document.getElementById('targetOutlineBtn');
@@ -1053,6 +1072,14 @@
             bgColorsWrapper.style.display = toggleCustomBg.checked ? 'block' : 'none';
         });
 
+        toggleTransparentBg.addEventListener('change', () => {
+            if (toggleTransparentBg.checked) {
+                canvasWrapper.classList.add('transparent-bg');
+            } else {
+                canvasWrapper.classList.remove('transparent-bg');
+            }
+        });
+
         addBgColorBtn.addEventListener('click', () => {
             const currentInputs = bgColorsList.querySelectorAll('.bg-color-input');
             if (currentInputs.length < 5) {
@@ -1284,13 +1311,17 @@
 
             const colorTarget = targetBgBtn.classList.contains('active') ? 'background' : 'outline';
 
-            // Background Layer (nutzt jetzt die volle Canvas-Größe inkl. Padding)
-            if (animatedColor && colorTarget === 'background') {
-                ctx.fillStyle = animatedColor;
+            // Background Layer
+            if (toggleTransparentBg.checked) {
+                ctx.clearRect(0, 0, animCanvas.width, animCanvas.height);
             } else {
-                ctx.fillStyle = getCSSVar('--canvas-bg');
+                if (animatedColor && colorTarget === 'background') {
+                    ctx.fillStyle = animatedColor;
+                } else {
+                    ctx.fillStyle = getCSSVar('--canvas-bg');
+                }
+                ctx.fillRect(0, 0, animCanvas.width, animCanvas.height);
             }
-            ctx.fillRect(0, 0, animCanvas.width, animCanvas.height);
 
             // Logik-Anpassung: Default ist jetzt Dunkel, Inverted ist Hell
             const isDark = !document.body.classList.contains('inverted');
@@ -1681,6 +1712,9 @@
             
             // VHS TAPE EFFECT
             if (activeFX.has('vhs')) {
+                ctx.save();
+                if (toggleTransparentBg.checked) ctx.globalCompositeOperation = 'source-atop';
+                
                 // Tracking lines
                 ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
                 ctx.fillRect(0, (timeFrame * 15 * animationSpeed) % animCanvas.height, animCanvas.width, 10);
@@ -1695,13 +1729,14 @@
                         ctx.drawImage(animCanvas, 0, sy, animCanvas.width, sh, dx, sy, animCanvas.width, sh);
                     }
                 }
+                ctx.restore();
             }
 
             // CRT GLOW
             if (activeFX.has('crt')) {
                 ctx.save();
                 ctx.filter = 'blur(6px)';
-                ctx.globalCompositeOperation = isDark ? 'screen' : 'multiply';
+                ctx.globalCompositeOperation = toggleTransparentBg.checked ? 'source-atop' : (isDark ? 'screen' : 'multiply');
                 ctx.globalAlpha = 0.5;
                 ctx.drawImage(animCanvas, 0, 0);
                 ctx.restore();
@@ -1710,8 +1745,14 @@
             // GRAIN
             if (activeFX.has('grain')) {
                 ctx.save();
-                ctx.globalCompositeOperation = isDark ? 'screen' : 'multiply';
-                ctx.globalAlpha = isDark ? 0.15 : 0.08;
+                if (toggleTransparentBg.checked) {
+                    ctx.globalCompositeOperation = 'source-atop';
+                    ctx.globalAlpha = isDark ? 0.3 : 0.2; 
+                } else {
+                    ctx.globalCompositeOperation = isDark ? 'screen' : 'multiply';
+                    ctx.globalAlpha = isDark ? 0.15 : 0.08;
+                }
+                
                 const pat = ctx.createPattern(noiseCanvas, 'repeat');
                 ctx.fillStyle = pat;
                 // Move pattern randomly to animate grain
@@ -1731,7 +1772,7 @@
 
         drawFrame(0);
 
-        // --- 5. GIF EXPORT ---
+        // --- 5. GIF EXPORT (NEW ENGINE WITH TRUE TRANSPARENCY) ---
         renderGifBtn.addEventListener('click', () => {
             if (pixels.length === 0) {
                 alert("Please upload an SVG artifact first.");
@@ -1740,91 +1781,109 @@
 
             isRendering = true;
             loadingOverlay.style.display = 'flex';
-            loadingText.textContent = 'RENDERING FRAMES...';
+            loadingText.textContent = 'INITIALIZING ENCODER...';
             progressFill.style.width = '0%';
 
             // Use more frames if in Sequence Mode to capture all animations
             const totalFrames = playMode === 'sequence' && activeModes.size > 0 ? activeModes.size * 20 : 30; 
-            const framesArray = [];
             
-            for (let i = 0; i < totalFrames; i++) {
-                // Adjust simFrame based on play mode to guarantee smooth GIF capturing
-                const simFrame = playMode === 'sequence' ? i * (20 / animationSpeed) : i * (10 / animationSpeed); 
-                drawFrame(simFrame);
-                framesArray.push(animCanvas.toDataURL('image/png'));
-                progressFill.style.width = ((i / totalFrames) * 50) + '%';
-            }
-
-            loadingText.textContent = 'ENCODING GIF...';
+            const isTransparent = toggleTransparentBg.checked;
+            const chromaHex = '#FF00FF'; // Magenta 
+            const chromaNum = 0xFF00FF;  // Magenta als reine Hex-Nummer (Vorgabe für gif.js)
 
             let gifW = animCanvas.width;
             let gifH = animCanvas.height;
-            const maxDimension = 1920; // Erhöht auf 1920, damit Full HD zu 100% scharf exportiert wird!
+            // Sicherer Wert (800px), um RAM-Abstürze im Browser zu verhindern
+            const maxDimension = 800; 
             if(gifW > maxDimension || gifH > maxDimension) {
                 const ratio = Math.min(maxDimension / gifW, maxDimension / gifH);
                 gifW = Math.round(gifW * ratio);
                 gifH = Math.round(gifH * ratio);
             }
 
-            gifshot.createGIF({
-                gifWidth: gifW,
-                gifHeight: gifH,
-                images: framesArray,
-                interval: 0.05, 
-                numFrames: totalFrames,
-                sampleInterval: 10, 
-                progressCallback: function(captureProgress) {
-                    progressFill.style.width = (50 + (captureProgress * 50)) + '%';
-                }
-            }, function(obj) {
-                if(!obj.error) {
-                    const image = obj.image;
-                    
-                    // Ladebildschirm ausblenden
-                    loadingOverlay.style.display = 'none';
-                    isRendering = false;
-                    
-                    // Ergebnisbildschirm anzeigen
-                    const resultOverlay = document.getElementById('resultOverlay');
-                    const resultGif = document.getElementById('resultGif');
-                    const downloadResultBtn = document.getElementById('downloadResultBtn');
-                    const closeResultBtn = document.getElementById('closeResultBtn');
-                    
-                    resultGif.src = image;
-                    resultOverlay.style.display = 'flex';
-                    
-                    // Sicherer Download über Blob-Konvertierung
-                    downloadResultBtn.onclick = () => {
-                        const base64Data = image.split(',')[1];
-                        const byteCharacters = atob(base64Data);
-                        const byteNumbers = new Array(byteCharacters.length);
-                        for (let i = 0; i < byteCharacters.length; i++) {
-                            byteNumbers[i] = byteCharacters.charCodeAt(i);
-                        }
-                        const byteArray = new Uint8Array(byteNumbers);
-                        const blob = new Blob([byteArray], {type: 'image/gif'});
-                        const blobUrl = URL.createObjectURL(blob);
-                        
-                        const link = document.createElement('a');
-                        link.href = blobUrl;
-                        link.download = 'pixel_artifact_anim.gif';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-                    };
-                    
-                    closeResultBtn.onclick = () => {
-                        resultOverlay.style.display = 'none';
-                        resultGif.src = ''; 
-                    };
+            // Trick: Wir laden den GIF-Worker lokal über einen Blob. Das verhindert lästige CORS/Adblocker Fehler!
+            const workerBlob = new Blob(["importScripts('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');"], { type: "text/javascript" });
+            const workerUrl = URL.createObjectURL(workerBlob);
 
-                } else {
-                    alert("Error encoding GIF. Try a smaller file.");
-                    loadingOverlay.style.display = 'none';
-                    isRendering = false;
-                }
+            const gif = new GIF({
+                workers: 2,
+                quality: 10,
+                width: gifW,
+                height: gifH,
+                workerScript: workerUrl,
+                // HIER PASSIERT DIE MAGIE: Wir deklarieren Magenta offiziell als absolut durchsichtig!
+                transparent: isTransparent ? chromaNum : null,
+                background: isTransparent ? chromaHex : getCSSVar('--canvas-bg')
             });
+
+            loadingText.textContent = 'RENDERING FRAMES...';
+
+            for (let i = 0; i < totalFrames; i++) {
+                const simFrame = playMode === 'sequence' ? i * (20 / animationSpeed) : i * (10 / animationSpeed); 
+                drawFrame(simFrame);
+                
+                // Ein temporäres Canvas für das skalierte Frame
+                const tmpCanvas = document.createElement('canvas');
+                tmpCanvas.width = gifW;
+                tmpCanvas.height = gifH;
+                const tCtx = tmpCanvas.getContext('2d');
+                
+                if (isTransparent) {
+                    // Wir streichen die Leinwand in reinem Magenta. Der Encoder schneidet diese Farbe später zu 100% aus!
+                    tCtx.fillStyle = chromaHex;
+                    tCtx.fillRect(0, 0, gifW, gifH);
+                } else {
+                    tCtx.fillStyle = getCSSVar('--canvas-bg');
+                    tCtx.fillRect(0, 0, gifW, gifH);
+                }
+                
+                // Skalieren und Zeichnen
+                tCtx.drawImage(animCanvas, 0, 0, animCanvas.width, animCanvas.height, 0, 0, gifW, gifH);
+                
+                // Frame an den Encoder übergeben (50ms Delay = 20 FPS)
+                gif.addFrame(tmpCanvas, {delay: 50});
+                
+                progressFill.style.width = ((i / totalFrames) * 30) + '%';
+            }
+
+            loadingText.textContent = 'ENCODING GIF...';
+
+            gif.on('progress', function(p) {
+                progressFill.style.width = (30 + (p * 70)) + '%';
+            });
+
+            gif.on('finished', function(blob) {
+                loadingOverlay.style.display = 'none';
+                isRendering = false;
+                
+                const resultOverlay = document.getElementById('resultOverlay');
+                const resultGif = document.getElementById('resultGif');
+                const downloadResultBtn = document.getElementById('downloadResultBtn');
+                const closeResultBtn = document.getElementById('closeResultBtn');
+                
+                const url = URL.createObjectURL(blob);
+                resultGif.src = url;
+                resultOverlay.style.display = 'flex';
+                
+                downloadResultBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'pixel_artifact_anim.gif';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+                
+                closeResultBtn.onclick = () => {
+                    resultOverlay.style.display = 'none';
+                    resultGif.src = ''; 
+                };
+                
+                // Speicher aufräumen
+                URL.revokeObjectURL(workerUrl);
+            });
+
+            gif.render();
         });
 
     </script>
