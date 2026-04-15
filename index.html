@@ -5,28 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PIXEL ARTIFACT - Animator</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-    <!-- NEU: Bricolage Grotesque von Mathieu Triay -->
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
-    <!-- ECHTE TRANSPARENZ: gif.js statt gifshot -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <style>
         :root {
-            /* STANDARD THEME IST JETZT DUNKEL */
-            --app-bg: #000000;
-            --panel-bg: #000000;
-            --main-text: #ffffff;
-            --ruler-bg: #000000;
-            --ruler-text: #ffffff;
-            --btn-bg: #000000;
-            --btn-hover-bg: #ffffff;
-            --btn-text: #ffffff;
-            --canvas-bg: #000000;
-            --accent: #0000ff; /* 100% RGB Blau - Nur für UI */
-            --grid-dot: rgba(255, 255, 255, 0.15);
-        }
-
-        body.inverted {
-            /* INVERTED THEME IST JETZT HELL */
+            /* STANDARD THEME IST JETZT HELL */
             --app-bg: #ffffff;
             --panel-bg: #ffffff;
             --main-text: #000000;
@@ -38,6 +21,21 @@
             --canvas-bg: #ffffff;
             --accent: #0000ff;
             --grid-dot: rgba(0, 0, 0, 0.15);
+        }
+
+        body.inverted {
+            /* INVERTED THEME IST JETZT DUNKEL */
+            --app-bg: #000000;
+            --panel-bg: #000000;
+            --main-text: #ffffff;
+            --ruler-bg: #000000;
+            --ruler-text: #ffffff;
+            --btn-bg: #000000;
+            --btn-hover-bg: #ffffff;
+            --btn-text: #ffffff;
+            --canvas-bg: #000000;
+            --accent: #0000ff;
+            --grid-dot: rgba(255, 255, 255, 0.15);
         }
 
         * {
@@ -230,11 +228,11 @@
             background-color: var(--app-bg);
             position: relative;
             overflow: hidden;
-            cursor: grab; /* Zeigt an, dass man die Fläche greifen kann */
+            cursor: grab; 
         }
         
         .workspace:active {
-            cursor: grabbing; /* Greif-Mauszeiger beim Ziehen */
+            cursor: grabbing; 
         }
         
         #zoomWrapper {
@@ -255,11 +253,10 @@
             background-color: var(--canvas-bg);
             border: 1px solid var(--main-text) !important;
             transition: width 0.3s, height 0.3s;
-            overflow: hidden; /* Verhindert, dass Effekte wie VHS aus dem Rahmen bluten */
-            flex-shrink: 0; /* HIER: Verhindert, dass der Browser die HD-Formate zerquetscht! */
+            overflow: hidden; 
+            flex-shrink: 0; 
         }
 
-        /* NEU: Checkerboard Pattern für Transparenz-Vorschau */
         .canvas-wrapper.transparent-bg {
             background-color: transparent !important;
             background-image: 
@@ -350,7 +347,7 @@
             transition: width 0.1s;
         }
 
-        /* Result Overlay (NEW) */
+        /* Result Overlay */
         #resultOverlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -378,7 +375,6 @@
     <div id="leftPanel" class="settings-panel">
         <h1>Anim<span class="raster">ator</span></h1>
         
-        <!-- IMPORT & FORMAT (NEW) -->
         <div class="control-group">
             <h3 style="margin-top: 0;">1. Imp<span class="raster">ort</span></h3>
             <label class="ui-btn file-upload-label">
@@ -387,7 +383,6 @@
             </label>
             <p id="fileInfo" class="small" style="margin-top: 5px; color: var(--accent); display: none;">File loaded.</p>
             
-            <!-- NEU: IMPORT MODE TOGGLE -->
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 15px;">
                 <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Import Engine</label>
             </div>
@@ -396,13 +391,12 @@
                 <button id="importModeVector" class="ui-btn" style="margin:0; padding: 8px 4px;">RASTER VECTOR</button>
             </div>
 
-            <!-- PIXEL DETAIL SLIDER (Wird nur im Vector-Modus gezeigt) -->
             <div id="vectorSettings" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px;">
                     <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Pixel Detail (Resolution)</label>
                     <span id="pixelDetailLabel" class="raster" style="font-size: 1.2em;">60px</span>
                 </div>
-                <input type="range" id="pixelDetailSlider" min="20" max="150" value="60" step="5" title="Lower = Chunky 8-bit, Higher = More detail">
+                <input type="range" id="pixelDetailSlider" min="20" max="150" value="60" step="5">
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 15px;">
@@ -417,7 +411,6 @@
             </div>
         </div>
 
-        <!-- TRANSFORM (UPDATED WITH GRID) -->
         <div class="control-group">
             <h3>2. Trans<span class="raster">form</span></h3>
             
@@ -431,33 +424,30 @@
                 <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Offset X / Y</label>
             </div>
             <div style="display: flex; gap: 8px;">
-                <input type="range" id="objXSlider" min="-800" max="800" value="0" step="10" title="Move X">
-                <input type="range" id="objYSlider" min="-800" max="800" value="0" step="10" title="Move Y">
+                <input type="range" id="objXSlider" min="-800" max="800" value="0" step="10">
+                <input type="range" id="objYSlider" min="-800" max="800" value="0" step="10">
             </div>
 
-            <!-- GRID REPEAT SLIDERS -->
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 15px;">
                 <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Repeat Grid (Cols / Rows)</label>
             </div>
             <div style="display: flex; gap: 8px;">
-                <input type="range" id="repeatXSlider" min="1" max="10" value="1" step="1" title="Columns">
-                <input type="range" id="repeatYSlider" min="1" max="10" value="1" step="1" title="Rows">
+                <input type="range" id="repeatXSlider" min="1" max="10" value="1" step="1">
+                <input type="range" id="repeatYSlider" min="1" max="10" value="1" step="1">
             </div>
             
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px;">
                 <label style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Grid Gap (X / Y)</label>
             </div>
             <div style="display: flex; gap: 8px;">
-                <input type="range" id="gapXSlider" min="0" max="800" value="100" step="10" title="Gap X">
-                <input type="range" id="gapYSlider" min="0" max="800" value="100" step="10" title="Gap Y">
+                <input type="range" id="gapXSlider" min="0" max="800" value="100" step="10">
+                <input type="range" id="gapYSlider" min="0" max="800" value="100" step="10">
             </div>
         </div>
 
-        <!-- STYLE -->
         <div class="control-group">
             <h3>3. St<span class="raster">yle</span></h3>
             
-            <!-- ZURÜCK: Transparent Background Toggle -->
             <div class="style-row" style="margin-bottom: 2px;">
                 <label><input type="checkbox" id="toggleTransparentBg"> Transparent Background</label>
             </div>
@@ -486,7 +476,6 @@
                 <input type="range" id="colorSpeedSlider" min="0.1" max="5" value="1" step="0.1">
             </div>
 
-            <!-- METALLIC TEXTURE (NEW) -->
             <div class="style-row" style="margin-bottom: 2px;">
                 <label><input type="checkbox" id="toggleMaterial"> Metallic Texture</label>
             </div>
@@ -505,7 +494,8 @@
 
             <div class="style-row">
                 <label><input type="checkbox" id="toggleFill"> Solid Fill</label>
-                <input type="color" id="colorFill" value="#ffffff">
+                <!-- Default Fill now matches the light theme default -->
+                <input type="color" id="colorFill" value="#000000">
             </div>
             
             <div class="style-row" style="margin-bottom: 2px;">
@@ -516,7 +506,6 @@
                 <input type="range" id="widthOutline" min="1" max="100" value="8" step="1" style="width: 100%;">
             </div>
             
-            <!-- ADOBE BLEND MODES -->
             <div class="style-row" style="margin-bottom: 2px;">
                 <label>Blend Mode</label>
                 <select id="blendModeSelect" style="background: var(--app-bg); color: var(--main-text); border: 1px solid var(--main-text) !important; padding: 4px; font-family: inherit; font-size: 11px; outline: none; text-transform: uppercase;">
@@ -555,7 +544,17 @@
 
     <!-- RIGHT Settings Sidebar -->
     <div id="rightPanel" class="settings-panel">
-        <!-- MOTION -->
+        
+        <!-- GIF LENGTH (NEW) -->
+        <div class="control-group" style="margin-bottom: 15px; border-bottom: 1px solid var(--main-text); padding-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <label style="font-size: 12px; font-weight: 700; text-transform: uppercase;">Export Length (Frames)</label>
+                <span id="gifFramesLabel" class="raster" style="font-size: 1.3em;">30</span>
+            </div>
+            <input type="range" id="gifFramesSlider" min="10" max="120" value="30" step="5">
+            <p class="small" style="margin: 5px 0 0 0;">More frames = longer GIF & slower rendering.</p>
+        </div>
+
         <div class="control-group">
             <div style="display: flex; justify-content: space-between; align-items: baseline;">
                 <h3 style="margin: 0; border: none;">4. 2D Mo<span class="raster">tion</span></h3>
@@ -568,7 +567,9 @@
 
             <button class="ui-btn active" id="btnStatic" style="margin-bottom: 12px; background: var(--accent); border-color: var(--accent) !important; color: #fff;">STATIC (CLEAR ALL)</button>
             <div class="modes-grid" id="motionGrid">
-                <!-- 2D Global & Local Effects only -->
+                <!-- 2D Global & Local Effects -->
+                <button class="ui-btn" data-mode="click">CLICK</button>
+                <button class="ui-btn" data-mode="leftright">LEFT RIGHT</button>
                 <button class="ui-btn" data-mode="rotate">ROTATE</button>
                 <button class="ui-btn" data-mode="bounce">BOUNCE</button>
                 <button class="ui-btn" data-mode="swing">SWING</button>
@@ -584,17 +585,17 @@
             </div>
         </div>
 
-        <!-- 3D MOTION (NEW FOLDER) -->
         <div class="control-group">
             <h3 style="margin: 0 0 10px 0;">5. 3D Mo<span class="raster">tion</span></h3>
             
             <div class="modes-grid" id="motionGrid3D" style="margin-bottom: 15px;">
+                <button class="ui-btn" data-mode="rotate_y">ROTATE Y-AXIS</button>
                 <button class="ui-btn" data-mode="spin3d">SPIN</button>
                 <button class="ui-btn" data-mode="flip3d">FLIP</button>
                 <button class="ui-btn" data-mode="tilt3d">TILT</button>
                 <button class="ui-btn" data-mode="wobble3d">WOBBLE</button>
                 <button class="ui-btn" data-mode="leaf3d">LEAF (NATURAL)</button>
-                <button class="ui-btn" data-mode="breathe3d">BREATHE (DEPTH)</button>
+                <button class="ui-btn" data-mode="breathe3d">BREATHE</button>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: baseline;">
@@ -603,27 +604,26 @@
             </div>
             <input type="range" id="zDepthSlider" min="1" max="5" value="1" step="1">
 
+            <!-- ECHTE MANUELLE ACHSEN-ROTATION -->
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px;">
-                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">X-Axis Range</label>
-                <span id="xRangeLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Rotation X</label>
+                <span id="xAxisLabel" class="raster" style="font-size: 1.2em;">0°</span>
             </div>
-            <input type="range" id="xRangeSlider" min="0" max="3" value="1" step="0.1">
+            <input type="range" id="xAxisSlider" min="0" max="360" value="0" step="1">
 
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px;">
-                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Y-Axis Range</label>
-                <span id="yRangeLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Rotation Y</label>
+                <span id="yAxisLabel" class="raster" style="font-size: 1.2em;">0°</span>
             </div>
-            <input type="range" id="yRangeSlider" min="0" max="3" value="1" step="0.1">
+            <input type="range" id="yAxisSlider" min="0" max="360" value="0" step="1">
 
-            <!-- NEW Z-Axis Range Slider -->
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 5px;">
-                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Z-Axis Range</label>
-                <span id="zAxisRangeLabel" class="raster" style="font-size: 1.2em;">1.0x</span>
+                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">Rotation Z</label>
+                <span id="zAxisLabel" class="raster" style="font-size: 1.2em;">0°</span>
             </div>
-            <input type="range" id="zAxisRangeSlider" min="0" max="3" value="1" step="0.1">
+            <input type="range" id="zAxisSlider" min="0" max="360" value="0" step="1">
         </div>
 
-        <!-- INTENSITIES (NEW DYNAMIC FOLDER) -->
         <div class="control-group">
             <h3 style="margin: 0 0 10px 0;">6. Int<span class="raster">ensities</span></h3>
             <div id="intensityContainer">
@@ -639,7 +639,6 @@
             <input type="range" id="speedSlider" min="0.2" max="3" value="1" step="0.2">
         </div>
 
-        <!-- POST-FX (Shifted) -->
         <div class="control-group" style="margin-bottom: 0;">
             <h3>7. Post<span class="raster">-FX</span></h3>
             <div class="modes-grid" id="fxGrid">
@@ -658,7 +657,7 @@
         </div>
     </div>
 
-    <!-- Result Screen (NEW) -->
+    <!-- Result Screen -->
     <div id="resultOverlay">
         <h2 style="color: var(--main-text);">GIF <span class="raster">RENDERED</span></h2>
         <img id="resultGif" src="">
@@ -676,7 +675,6 @@
         const animCanvas = document.getElementById('animCanvas');
         const ctx = animCanvas.getContext('2d');
         
-        // Beide Motion Grids zusammenfassen für Click-Events
         const motionButtons2D = document.querySelectorAll('#motionGrid .ui-btn');
         const motionButtons3D = document.querySelectorAll('#motionGrid3D .ui-btn');
         const motionButtons = [...motionButtons2D, ...motionButtons3D];
@@ -686,13 +684,11 @@
         const btnPlayTogether = document.getElementById('btnPlayTogether');
         const btnPlaySequence = document.getElementById('btnPlaySequence');
         
-        // Transform Elements
         const objScaleSlider = document.getElementById('objScaleSlider');
         const objScaleLabel = document.getElementById('objScaleLabel');
         const objXSlider = document.getElementById('objXSlider');
         const objYSlider = document.getElementById('objYSlider');
 
-        // Import / Detail Elements
         const importModePixel = document.getElementById('importModePixel');
         const importModeVector = document.getElementById('importModeVector');
         const vectorSettings = document.getElementById('vectorSettings');
@@ -700,9 +696,8 @@
         const pixelDetailLabel = document.getElementById('pixelDetailLabel');
         
         let currentSVGString = null; 
-        let currentImportMode = 'pixel'; // 'pixel' or 'vector'
+        let currentImportMode = 'pixel'; 
 
-        // Format & Grid Elements (NEW)
         const fmtSquare = document.getElementById('fmtSquare');
         const fmtHDL = document.getElementById('fmtHDL');
         const fmtHDP = document.getElementById('fmtHDP');
@@ -714,14 +709,15 @@
         const gapXSlider = document.getElementById('gapXSlider');
         const gapYSlider = document.getElementById('gapYSlider');
 
-        // Style Elements
         const toggleCustomBg = document.getElementById('toggleCustomBg');
         const bgColorsWrapper = document.getElementById('bgColorsWrapper');
         const bgColorsList = document.getElementById('bgColorsList');
         const addBgColorBtn = document.getElementById('addBgColorBtn');
         const remBgColorBtn = document.getElementById('remBgColorBtn');
         
-        const toggleTransparentBg = document.getElementById('toggleTransparentBg'); // ZURÜCK
+        const toggleTransparentBg = document.getElementById('toggleTransparentBg');
+        const gifFramesSlider = document.getElementById('gifFramesSlider');
+        const gifFramesLabel = document.getElementById('gifFramesLabel');
         
         const targetBgBtn = document.getElementById('targetBgBtn');
         const targetOutlineBtn = document.getElementById('targetOutlineBtn');
@@ -734,7 +730,6 @@
         const colorOutline = document.getElementById('colorOutline');
         const blendModeSelect = document.getElementById('blendModeSelect'); 
         
-        // Material Elements
         const toggleMaterial = document.getElementById('toggleMaterial');
         const materialWrapper = document.getElementById('materialWrapper');
         const matTargetFillBtn = document.getElementById('matTargetFillBtn');
@@ -745,17 +740,16 @@
         const matChromeBtn = document.getElementById('matChromeBtn');
         
         let activeMaterial = 'steel';
-        let matTarget = 'both'; // 'fill', 'outline', 'both'
+        let matTarget = 'both';
 
-        // 3D Specific Elements
         const zDepthSlider = document.getElementById('zDepthSlider');
         const zDepthLabel = document.getElementById('zDepthLabel');
-        const xRangeSlider = document.getElementById('xRangeSlider');
-        const xRangeLabel = document.getElementById('xRangeLabel');
-        const yRangeSlider = document.getElementById('yRangeSlider');
-        const yRangeLabel = document.getElementById('yRangeLabel');
-        const zAxisRangeSlider = document.getElementById('zAxisRangeSlider');
-        const zAxisRangeLabel = document.getElementById('zAxisRangeLabel');
+        const xAxisSlider = document.getElementById('xAxisSlider');
+        const xAxisLabel = document.getElementById('xAxisLabel');
+        const yAxisSlider = document.getElementById('yAxisSlider');
+        const yAxisLabel = document.getElementById('yAxisLabel');
+        const zAxisSlider = document.getElementById('zAxisSlider');
+        const zAxisLabel = document.getElementById('zAxisLabel');
 
         const speedSlider = document.getElementById('speedSlider');
         const speedLabel = document.getElementById('speedLabel');
@@ -772,21 +766,19 @@
         const workspace = document.getElementById('workspace');
 
         // --- State ---
-        let pixels = []; // {x, y, w, h, fill, randOffset, randSpeed}
+        let pixels = []; 
         let svgWidth = 800;
         let svgHeight = 600;
         let activeModes = new Set();
         let activeFX = new Set();
-        let playMode = 'together'; // 'together' or 'sequence'
+        let playMode = 'together'; 
         let animationSpeed = 1.0;
         let frameCount = 0;
         let isRendering = false;
         let animationId;
         
-        // Intensity State (NEW)
         let motionIntensities = {};
         
-        // Viewport State (Zoom & Pan)
         let currentZoom = 1;
         let panX = 0;
         let panY = 0;
@@ -794,7 +786,6 @@
         let startPanX = 0;
         let startPanY = 0;
 
-        // Automatische Zoom-Anpassung bei Fensteränderung (hält das Canvas immer im Blick)
         window.addEventListener('resize', () => {
             if (workspace && animCanvas.width > 0) {
                 currentZoom = Math.min(
@@ -814,7 +805,6 @@
             fmtFHDL.classList.remove('active');
             fmtFHDP.classList.remove('active');
             
-            // Standardisierte, echte Auflösungen!
             if (type === 'square') {
                 fmtSquare.classList.add('active');
                 animCanvas.width = 1080;
@@ -840,7 +830,6 @@
             canvasWrapper.style.width = animCanvas.width + 'px';
             canvasWrapper.style.height = animCanvas.height + 'px';
             
-            // Zoom so anpassen, dass das Canvas sichtbar in der Mitte liegt
             if (workspace) {
                 currentZoom = Math.min(
                     (workspace.clientWidth - 100) / animCanvas.width,
@@ -859,11 +848,8 @@
         fmtFHDL.addEventListener('click', () => setFormat('fhd_l'));
         fmtFHDP.addEventListener('click', () => setFormat('fhd_p'));
         
-        // Initial setup
         setFormat('square');
 
-
-        // Noise Generator for Grain
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = 250; 
         noiseCanvas.height = 250;
@@ -881,8 +867,6 @@
         function getCSSVar(name) { return getComputedStyle(document.body).getPropertyValue(name).trim(); }
 
         // --- 1. SVG Parsing & Live Voxelization ---
-        
-        // Import Mode Listeners
         importModePixel.addEventListener('click', () => {
             importModePixel.classList.add('active');
             importModeVector.classList.remove('active');
@@ -907,16 +891,14 @@
             reader.onload = (event) => {
                 currentSVGString = event.target.result;
                 
-                // --- SMART AUTO-DETECT ---
-                // Prüft ob die Datei Vektor-Pfade enthält oder nur reine Pixel-Rechtecke
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(currentSVGString, "image/svg+xml");
                 const hasVectors = doc.querySelectorAll('path, circle, ellipse, polygon, polyline, text').length > 0;
                 
                 if (hasVectors) {
-                    importModeVector.click(); // Wechselt UI und parst als Vektor
+                    importModeVector.click(); 
                 } else {
-                    importModePixel.click();  // Wechselt UI und behält Original-Pixel
+                    importModePixel.click(); 
                 }
 
                 fileInfo.style.display = 'block';
@@ -934,7 +916,6 @@
             }
         });
 
-        // Hilfsfunktion zum finalen Platzieren des fertig geparsten Objekts
         function finalizeSVGImport(finalSvgW, finalSvgH) {
             let initialScale = Math.min(800 / finalSvgW, 800 / finalSvgH, 1);
             objScaleSlider.value = initialScale;
@@ -965,7 +946,6 @@
             
             if(!svgElement) { alert("Invalid SVG file."); return; }
 
-            // Lese Original-Größen oder viewBox aus
             let w = parseFloat(svgElement.getAttribute('width'));
             let h = parseFloat(svgElement.getAttribute('height'));
             
@@ -976,12 +956,11 @@
                     w = parseFloat(vbp[2]);
                     h = parseFloat(vbp[3]);
                 } else {
-                    w = 800; h = 600; // Fallback
+                    w = 800; h = 600; 
                 }
             }
 
             if (currentImportMode === 'pixel') {
-                // --- CLASSIC MODE: Exaktes Beibehalten der Original SVG-Pixel ---
                 svgWidth = w;
                 svgHeight = h;
                 const rects = doc.querySelectorAll('rect');
@@ -1002,7 +981,6 @@
                 finalizeSVGImport(svgWidth, svgHeight);
 
             } else {
-                // --- VECTOR MODE: Rasterisiert Logos und Pfade in ein Voxel-Gitter ---
                 if (!svgElement.getAttribute('xmlns')) {
                     svgElement.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
                 }
@@ -1067,6 +1045,10 @@
             objScaleLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
         });
 
+        gifFramesSlider.addEventListener('input', (e) => {
+            gifFramesLabel.textContent = e.target.value;
+        });
+
         // --- 1c. Background UI ---
         toggleCustomBg.addEventListener('change', () => {
             bgColorsWrapper.style.display = toggleCustomBg.checked ? 'block' : 'none';
@@ -1086,7 +1068,6 @@
                 const newInput = document.createElement('input');
                 newInput.type = 'color';
                 newInput.className = 'bg-color-input';
-                // Wähle eine markante Default-Farbe für die neuen Boxen
                 const defColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
                 newInput.value = defColors[currentInputs.length];
                 bgColorsList.appendChild(newInput);
@@ -1104,6 +1085,7 @@
             targetBgBtn.classList.add('active');
             targetOutlineBtn.classList.remove('active');
         });
+
         // --- 1c. Material UI ---
         toggleMaterial.addEventListener('change', () => {
             materialWrapper.style.display = toggleMaterial.checked ? 'block' : 'none';
@@ -1129,23 +1111,22 @@
         matSilverBtn.addEventListener('click', () => { resetMatBtns(); matSilverBtn.classList.add('active'); activeMaterial = 'silver'; });
         matChromeBtn.addEventListener('click', () => { resetMatBtns(); matChromeBtn.classList.add('active'); activeMaterial = 'chrome'; });
 
-        // --- 1c. Extended Controls Listeners ---
         colorSpeedSlider.addEventListener('input', (e) => {
             colorSpeedLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
         });
 
-        // --- 1d. 3D Control UI ---
+        // --- 1d. 3D Control UI (NEW STATIC AXIS ROTATION) ---
         zDepthSlider.addEventListener('input', (e) => {
             zDepthLabel.textContent = e.target.value + ' Lyr';
         });
-        xRangeSlider.addEventListener('input', (e) => {
-            xRangeLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        xAxisSlider.addEventListener('input', (e) => {
+            xAxisLabel.textContent = e.target.value + '°';
         });
-        yRangeSlider.addEventListener('input', (e) => {
-            yRangeLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        yAxisSlider.addEventListener('input', (e) => {
+            yAxisLabel.textContent = e.target.value + '°';
         });
-        zAxisRangeSlider.addEventListener('input', (e) => {
-            zAxisRangeLabel.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        zAxisSlider.addEventListener('input', (e) => {
+            zAxisLabel.textContent = e.target.value + '°';
         });
 
         // --- 2. Viewport UI (Zoom & Pan) ---
@@ -1167,7 +1148,6 @@
         zoomInBtn.addEventListener('click', () => { currentZoom = Math.min(currentZoom + 0.2, 5); applyZoom(true); });
         zoomOutBtn.addEventListener('click', () => { currentZoom = Math.max(currentZoom - 0.2, 0.2); applyZoom(true); });
 
-        // Scrollen mit Strg/Cmd + Mausrad für Zoom
         workspace.addEventListener('wheel', (e) => {
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
@@ -1177,11 +1157,8 @@
             }
         }, { passive: false });
 
-        // Panning (Verschieben per Drag & Drop)
         workspace.addEventListener('mousedown', (e) => {
-            // Klicks auf Buttons oder das Panel ignorieren
             if (e.target.closest('.top-right-controls') || e.target.closest('#settingsPanel')) return;
-            
             isPanning = true;
             startPanX = e.clientX - panX;
             startPanY = e.clientY - panY;
@@ -1236,7 +1213,6 @@
             });
         });
 
-        // Dynamic Intensity UI Builder
         function updateIntensityUI() {
             const container = document.getElementById('intensityContainer');
             container.innerHTML = ''; 
@@ -1252,9 +1228,14 @@
                 const val = motionIntensities[mode];
                 const row = document.createElement('div');
                 row.style.marginBottom = '10px';
+                
+                // Verschönerte Label-Darstellung
+                let displayMode = mode.toUpperCase().replace('3D', ' 3D');
+                if (displayMode === 'ROTATE_Y') displayMode = 'ROTATE Y-AXIS';
+                
                 row.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">${mode} Intensity</label>
+                        <label style="font-size: 10px; font-weight: 600; text-transform: uppercase;">${displayMode} Intensity</label>
                         <span class="raster" style="font-size: 1.2em;" id="val-${mode}">${val.toFixed(1)}x</span>
                     </div>
                     <input type="range" data-mode="${mode}" min="0" max="3" value="${val}" step="0.1">
@@ -1295,7 +1276,6 @@
 
         // --- 4. Animation Engine ---
         function drawFrame(timeFrame) {
-            // Determine Animated Color First
             let animatedColor = null;
             if (toggleCustomBg.checked) {
                 const bgInputs = document.querySelectorAll('.bg-color-input');
@@ -1311,7 +1291,6 @@
 
             const colorTarget = targetBgBtn.classList.contains('active') ? 'background' : 'outline';
 
-            // Background Layer
             if (toggleTransparentBg.checked) {
                 ctx.clearRect(0, 0, animCanvas.width, animCanvas.height);
             } else {
@@ -1323,14 +1302,12 @@
                 ctx.fillRect(0, 0, animCanvas.width, animCanvas.height);
             }
 
-            // Logik-Anpassung: Default ist jetzt Dunkel, Inverted ist Hell
-            const isDark = !document.body.classList.contains('inverted');
+            // ACHTUNG: Durch das Default Helle Theme ist "Dark" = "inverted" true!
+            const isDark = document.body.classList.contains('inverted');
 
-            // --- Sequence Logic ---
             const modesArr = Array.from(activeModes);
             let activeSequenceMode = null;
             if (playMode === 'sequence' && modesArr.length > 0) {
-                // Switch animation every ~20 frames
                 const phase = Math.floor((timeFrame * animationSpeed) / 20) % modesArr.length;
                 activeSequenceMode = modesArr[phase];
             }
@@ -1347,6 +1324,23 @@
             // --- GLOBAL TRANSFORMS ---
             ctx.save();
             let globalOffsetX = 0, globalOffsetY = 0, globalScaleX = 1, globalScaleY = 1, globalAngle = 0;
+
+            // NEU: CLICK Animation
+            if (isActive('click')) {
+                const phase = (timeFrame * 0.05 * animationSpeed) % (Math.PI * 2);
+                let scale = 1.0;
+                // Schnelles Abtauchen, kurzes Hochschnellen
+                if (phase < 0.5) scale = 0.85; 
+                else if (phase < 1.0) scale = 1.05; 
+                
+                scale = 1.0 + ((scale - 1.0) * getInt('click'));
+                globalScaleX *= scale;
+                globalScaleY *= scale;
+            }
+            // NEU: LEFT RIGHT Animation
+            if (isActive('leftright')) {
+                globalOffsetX += Math.sin(timeFrame * 0.05 * animationSpeed) * 80 * getInt('leftright');
+            }
 
             if (isActive('bounce')) {
                 globalOffsetY = -Math.abs(Math.sin(timeFrame * 0.1 * animationSpeed)) * 60 * getInt('bounce');
@@ -1366,67 +1360,59 @@
                 globalScaleX = 1 - Math.sin(timeFrame * 0.1 * animationSpeed) * 0.1 * getInt('stretch');
             }
 
-            // Die neue Mitte ist exakt das Zentrum des ausgewählten Canvas-Formats
             const screenCenterX = animCanvas.width / 2;
             const screenCenterY = animCanvas.height / 2;
             const svgCenterX = svgWidth / 2;
             const svgCenterY = svgHeight / 2;
 
-            // Manuelle Transformationen (Offset & Scale des Objekts)
             const manualX = parseFloat(objXSlider.value);
             const manualY = parseFloat(objYSlider.value);
             const manualScale = parseFloat(objScaleSlider.value);
 
-            // 3D Achsen-Multiplikatoren abgreifen
-            const xRangeMultiplier = parseFloat(xRangeSlider.value);
-            const yRangeMultiplier = parseFloat(yRangeSlider.value);
-            const zRangeMultiplier = parseFloat(zAxisRangeSlider.value);
+            // --- 3D MATH PREPARATION ---
+            // NEU: Reale, manuelle Rotationen aus den umgebauten Achsen-Slidern abgreifen
+            const manualAngleX = parseFloat(xAxisSlider.value) * (Math.PI / 180);
+            const manualAngleY = parseFloat(yAxisSlider.value) * (Math.PI / 180);
+            const manualAngleZ = parseFloat(zAxisSlider.value) * (Math.PI / 180);
 
-            // --- 3D MATH PREPARATION (SOFTER, MORE NATURAL MOTIONS) ---
-            let angleY = 0; // Yaw
-            let angleX = 0; // Pitch
-            let angleZ = 0; // Roll
-            const fov = 800; // Brennweite
+            let angleY = manualAngleY; // Yaw
+            let angleX = manualAngleX; // Pitch
+            let angleZ = manualAngleZ; // Roll
+            const fov = 800; 
 
+            // NEU: Rotate Y-Axis Animation
+            if (isActive('rotate_y')) {
+                angleY += timeFrame * 0.05 * animationSpeed * getInt('rotate_y');
+            }
             if (isActive('spin3d')) {
-                // Ein weiches, sanftes Taumeln
-                angleY = timeFrame * 0.025 * animationSpeed * getInt('spin3d');
-                angleX = Math.sin(timeFrame * 0.01 * animationSpeed) * 0.15 * getInt('spin3d');
-                angleZ = Math.cos(timeFrame * 0.015 * animationSpeed) * 0.1 * getInt('spin3d');
+                angleY += timeFrame * 0.025 * animationSpeed * getInt('spin3d');
+                angleX += Math.sin(timeFrame * 0.01 * animationSpeed) * 0.15 * getInt('spin3d');
+                angleZ += Math.cos(timeFrame * 0.015 * animationSpeed) * 0.1 * getInt('spin3d');
             }
             if (isActive('flip3d')) {
-                angleX = timeFrame * 0.03 * animationSpeed * getInt('flip3d');
-                angleY = Math.sin(timeFrame * 0.02 * animationSpeed) * 0.15 * getInt('flip3d'); 
+                angleX += timeFrame * 0.03 * animationSpeed * getInt('flip3d');
+                angleY += Math.sin(timeFrame * 0.02 * animationSpeed) * 0.15 * getInt('flip3d'); 
             }
             if (isActive('tilt3d')) {
-                angleX = Math.sin(timeFrame * 0.03 * animationSpeed) * 0.3 * getInt('tilt3d');
-                angleZ = Math.cos(timeFrame * 0.02 * animationSpeed) * 0.1 * getInt('tilt3d'); 
+                angleX += Math.sin(timeFrame * 0.03 * animationSpeed) * 0.3 * getInt('tilt3d');
+                angleZ += Math.cos(timeFrame * 0.02 * animationSpeed) * 0.1 * getInt('tilt3d'); 
             }
             if (isActive('wobble3d')) {
-                angleY = timeFrame * 0.02 * animationSpeed * getInt('wobble3d');
-                angleX = Math.sin(timeFrame * 0.025 * animationSpeed) * 0.25 * getInt('wobble3d');
-                angleZ = Math.sin(timeFrame * 0.03 * animationSpeed) * 0.15 * getInt('wobble3d');
+                angleY += timeFrame * 0.02 * animationSpeed * getInt('wobble3d');
+                angleX += Math.sin(timeFrame * 0.025 * animationSpeed) * 0.25 * getInt('wobble3d');
+                angleZ += Math.sin(timeFrame * 0.03 * animationSpeed) * 0.15 * getInt('wobble3d');
             }
             if (isActive('leaf3d')) {
-                angleX = Math.sin(timeFrame * 0.02 * animationSpeed) * 0.25 * getInt('leaf3d');
-                angleY = Math.cos(timeFrame * 0.015 * animationSpeed) * 0.15 * getInt('leaf3d');
-                angleZ = Math.sin(timeFrame * 0.02 * animationSpeed) * 0.1 * getInt('leaf3d'); 
+                angleX += Math.sin(timeFrame * 0.02 * animationSpeed) * 0.25 * getInt('leaf3d');
+                angleY += Math.cos(timeFrame * 0.015 * animationSpeed) * 0.15 * getInt('leaf3d');
+                angleZ += Math.sin(timeFrame * 0.02 * animationSpeed) * 0.1 * getInt('leaf3d'); 
                 globalOffsetX += Math.sin(timeFrame * 0.03 * animationSpeed) * 8 * getInt('leaf3d');
                 globalOffsetY += Math.cos(timeFrame * 0.04 * animationSpeed) * 4 * getInt('leaf3d');
             }
 
-            // Achsen-Dämpfung/Verstärkung anwenden
-            angleX *= xRangeMultiplier;
-            angleY *= yRangeMultiplier;
-            angleZ *= zRangeMultiplier;
-
-            // Z-Depth Layers ermitteln
             const zLayers = parseInt(zDepthSlider.value);
             const zSpacing = 6; 
 
-            // --- PRE-CALCULATE PIXEL POSITIONS FOR ALL 3D LAYERS ---
-            // Die Positionen werden jetzt perfekt auf 0,0 (das Objekt-Zentrum) berechnet, 
-            // damit wir das fertige Artefakt danach problemlos im Grid klonen können!
             const framePixels = [];
 
             for (let layer = 0; layer < zLayers; layer++) {
@@ -1436,7 +1422,6 @@
                     let fill = p.fill;
                     let alpha = 1.0;
                     
-                    // --- LOCAL TRANSFORMS (2D) ---
                     if (isActive('wave')) {
                         y += Math.sin(timeFrame * 0.1 * animationSpeed + x * 0.05) * 15 * getInt('wave');
                     } 
@@ -1473,10 +1458,8 @@
                         }
                     }
 
-                    // --- 3D PROJECTION ENGINE ---
                     let px_3d = x - svgCenterX;
                     let py_3d = y - svgCenterY;
-                    
                     let pz_3d = -(layer * zSpacing);
 
                     if (isActive('breathe3d')) {
@@ -1485,7 +1468,7 @@
                         pz_3d += (distToCenter * 0.05) * zExpand;
                     }
 
-                    // --- FULL EULER 3D ROTATION ---
+                    // EULER ROTATION
                     let px1 = px_3d * Math.cos(angleY) - pz_3d * Math.sin(angleY);
                     let py1 = py_3d;
                     let pz1 = px_3d * Math.sin(angleY) + pz_3d * Math.cos(angleY);
@@ -1500,52 +1483,42 @@
 
                     let scale3d = fov / (fov + pz3);
                     
-                    // x und y sind jetzt um 0,0 zentriert
                     x = px3 * scale3d;
                     y = py3 * scale3d;
                     let w3d = p.w * scale3d;
                     let h3d = p.h * scale3d;
 
-                    // MAIN PASS THEME & FILL
                     if (toggleFill.checked) {
                         fill = colorFill.value;
                     } else {
+                        // Wenn der Hintergrund dunkel ist, werden schwarze Pixel für Kontrast automatisch weiß
                         if (isDark) {
                             if (fill === 'rgb(0,0,0)' || fill === '#000000') fill = '#ffffff';
                             else if (fill === 'rgb(255,255,255)' || fill === '#ffffff') fill = '#000000';
                         }
                     }
 
-                    // Wir speichern den layerIndex für echte 3D-Schattierungen
                     framePixels.push({ x, y, w: w3d, h: h3d, fill, alpha, z: pz3, scale: scale3d, isBackLayer: layer > 0, layerIndex: layer });
                 });
             }
 
-            // WICHTIG: Tiefensortierung (Z-Index) für perfekten 3D-Körper
             framePixels.sort((a, b) => b.z - a.z);
 
-            // --- SEPARATED ROTATING METALLIC TEXTURES (BEVEL EFFECT) ---
             let metallicGradMain = null;
             let metallicGradOutline = null;
 
             if (toggleMaterial.checked) {
                 const gradRadius = Math.max(svgWidth, svgHeight) * 0.8; 
-
-                // 1. MAIN GRADIENT (Seidenweiche Rotation um das Zentrum für das Innere)
                 const gradAngleMain = timeFrame * 0.05 * animationSpeed;
                 const gXMain = Math.cos(gradAngleMain) * gradRadius;
                 const gYMain = Math.sin(gradAngleMain) * gradRadius;
                 metallicGradMain = ctx.createLinearGradient(-gXMain, -gYMain, gXMain, gYMain);
 
-                // 2. OUTLINE GRADIENT (180 Grad Phasenverschiebung)
-                // Dadurch fängt die Umrandung das Licht spiegelverkehrt ein und wirkt wie eine 
-                // physisch abgeschrägte, massive 3D-Kante (Bevel), die sich stark vom Inneren abhebt!
                 const gradAngleOutline = gradAngleMain + Math.PI; 
                 const gXOut = Math.cos(gradAngleOutline) * gradRadius;
                 const gYOut = Math.sin(gradAngleOutline) * gradRadius;
                 metallicGradOutline = ctx.createLinearGradient(-gXOut, -gYOut, gXOut, gYOut);
 
-                // Helper: Farben für beide Verläufe identisch befüllen
                 const applyColors = (grad) => {
                     if (activeMaterial === 'chrome') {
                         grad.addColorStop(0, '#ffffff');
@@ -1572,7 +1545,6 @@
                 applyColors(metallicGradOutline);
             }
 
-            // Render Pass Function (NOW USES OFFSCREEN CONTEXT)
             const renderPixels = (passType, tgtCtx) => {
                 const outlineWidth = parseInt(widthOutline.value);
 
@@ -1582,12 +1554,10 @@
                     let renderW = p.w;
                     let renderH = p.h;
 
-                    // --- STYLING RULES ---
                     if (passType === 'outline') {
                         let ow = outlineWidth * p.scale; 
                         let useMetalOutline = toggleMaterial.checked && metallicGradOutline && (matTarget === 'outline' || matTarget === 'both');
 
-                        // Base Outline
                         if (useMetalOutline) {
                             tgtCtx.fillStyle = metallicGradOutline;
                             tgtCtx.strokeStyle = metallicGradOutline;
@@ -1614,7 +1584,6 @@
                         return;
                     }
 
-                    // MAIN PASS (Inneres des SVGs)
                     if (passType === 'main') {
                         tgtCtx.globalAlpha = p.alpha;
                         
@@ -1627,7 +1596,6 @@
                             const isBlackOrWhite = p.fill === '#000000' || p.fill === '#ffffff' || p.fill === 'rgb(0,0,0)' || p.fill === 'rgb(255,255,255)';
                             
                             if (!isBlackOrWhite) {
-                                // Damit das Metall nicht durchsichtig wird, kurz speichern und zurücksetzen
                                 const prevBlend = tgtCtx.globalCompositeOperation;
                                 tgtCtx.globalCompositeOperation = 'overlay';
                                 tgtCtx.globalAlpha = p.alpha * 0.7; 
@@ -1650,13 +1618,10 @@
                 });
             };
 
-            // --- ADOBE STYLE OFFSCREEN RENDERING ---
-            // Wir rendern das EINE fertige 3D-Objekt komplett sauber auf einen unsichtbaren Layer.
-            // Dadurch werden interne Überschneidungen nicht geblendet!
             if (!window.offCanvas) {
                 window.offCanvas = document.createElement('canvas');
                 window.offCtx = window.offCanvas.getContext('2d');
-                window.offSize = 4000; // Genug Platz auch für stark vergrößerte Objekte
+                window.offSize = 4000; 
                 window.offCanvas.width = window.offSize;
                 window.offCanvas.height = window.offSize;
             }
@@ -1671,7 +1636,6 @@
             
             window.offCtx.restore();
 
-            // --- GRID RENDER LOOP ---
             const repX = parseInt(repeatXSlider.value);
             const repY = parseInt(repeatYSlider.value);
             const gapX = parseInt(gapXSlider.value);
@@ -1692,35 +1656,27 @@
                     ctx.rotate(globalAngle);
                     ctx.scale(globalScaleX * manualScale, globalScaleY * manualScale);
 
-                    // --- ECHTES ADOBE BLENDING ---
                     if (blendModeSelect) {
                         ctx.globalCompositeOperation = blendModeSelect.value;
                     }
 
-                    // Wir stempeln das fertig berechnete Objekt als GANZES auf den Bildschirm.
-                    // Jetzt blendet das Objekt nur noch mit dem Hintergrund und den Klonen!
                     ctx.drawImage(window.offCanvas, -window.offSize / 2, -window.offSize / 2);
                     
                     ctx.restore();
                 }
             }
             
-            // Wichtig: Blending nach dem Grid zurücksetzen!
             ctx.globalCompositeOperation = 'source-over';
 
             // --- POST-FX LAYER ---
-            
-            // VHS TAPE EFFECT
             if (activeFX.has('vhs')) {
                 ctx.save();
                 if (toggleTransparentBg.checked) ctx.globalCompositeOperation = 'source-atop';
                 
-                // Tracking lines
                 ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
                 ctx.fillRect(0, (timeFrame * 15 * animationSpeed) % animCanvas.height, animCanvas.width, 10);
                 ctx.fillRect(0, ((timeFrame * 15 * animationSpeed) + 100) % animCanvas.height, animCanvas.width, 3);
                 
-                // Random Slice Shifts
                 if (Math.random() > 0.7) {
                     for(let i=0; i<3; i++) {
                         let sy = Math.random() * animCanvas.height;
@@ -1732,7 +1688,6 @@
                 ctx.restore();
             }
 
-            // CRT GLOW
             if (activeFX.has('crt')) {
                 ctx.save();
                 ctx.filter = 'blur(6px)';
@@ -1742,7 +1697,6 @@
                 ctx.restore();
             }
 
-            // GRAIN
             if (activeFX.has('grain')) {
                 ctx.save();
                 if (toggleTransparentBg.checked) {
@@ -1755,7 +1709,6 @@
                 
                 const pat = ctx.createPattern(noiseCanvas, 'repeat');
                 ctx.fillStyle = pat;
-                // Move pattern randomly to animate grain
                 ctx.translate(Math.random() * 200, Math.random() * 200);
                 ctx.fillRect(-200, -200, animCanvas.width + 400, animCanvas.height + 400);
                 ctx.restore();
@@ -1772,7 +1725,7 @@
 
         drawFrame(0);
 
-        // --- 5. GIF EXPORT (NEW ENGINE WITH TRUE TRANSPARENCY) ---
+        // --- 5. GIF EXPORT ---
         renderGifBtn.addEventListener('click', () => {
             if (pixels.length === 0) {
                 alert("Please upload an SVG artifact first.");
@@ -1784,16 +1737,17 @@
             loadingText.textContent = 'INITIALIZING ENCODER...';
             progressFill.style.width = '0%';
 
-            // Use more frames if in Sequence Mode to capture all animations
-            const totalFrames = playMode === 'sequence' && activeModes.size > 0 ? activeModes.size * 20 : 30; 
+            // Frame-Zahl vom Slider auslesen!
+            const totalFrames = parseInt(gifFramesSlider.value);
             
             const isTransparent = toggleTransparentBg.checked;
-            const chromaHex = '#FF00FF'; // Magenta 
-            const chromaNum = 0xFF00FF;  // Magenta als reine Hex-Nummer (Vorgabe für gif.js)
+            
+            // Für die 100% perfekte Transparenz ohne Magenta-Streifen verwenden wir einen internen Code
+            const chromaHex = '#00FE01'; // Seltenes Neongrün, das wir als unsichtbar markieren
+            const chromaNum = 0x00FE01;
 
             let gifW = animCanvas.width;
             let gifH = animCanvas.height;
-            // Sicherer Wert (800px), um RAM-Abstürze im Browser zu verhindern
             const maxDimension = 800; 
             if(gifW > maxDimension || gifH > maxDimension) {
                 const ratio = Math.min(maxDimension / gifW, maxDimension / gifH);
@@ -1801,7 +1755,6 @@
                 gifH = Math.round(gifH * ratio);
             }
 
-            // Trick: Wir laden den GIF-Worker lokal über einen Blob. Das verhindert lästige CORS/Adblocker Fehler!
             const workerBlob = new Blob(["importScripts('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');"], { type: "text/javascript" });
             const workerUrl = URL.createObjectURL(workerBlob);
 
@@ -1811,7 +1764,6 @@
                 width: gifW,
                 height: gifH,
                 workerScript: workerUrl,
-                // HIER PASSIERT DIE MAGIE: Wir deklarieren Magenta offiziell als absolut durchsichtig!
                 transparent: isTransparent ? chromaNum : null,
                 background: isTransparent ? chromaHex : getCSSVar('--canvas-bg')
             });
@@ -1819,28 +1771,42 @@
             loadingText.textContent = 'RENDERING FRAMES...';
 
             for (let i = 0; i < totalFrames; i++) {
-                const simFrame = playMode === 'sequence' ? i * (20 / animationSpeed) : i * (10 / animationSpeed); 
+                // BUGFIX: Simulierter Frame skaliert nun exakt mit der im Tool gewählten Geschwindigkeit!
+                const simFrame = i * 10; 
                 drawFrame(simFrame);
                 
-                // Ein temporäres Canvas für das skalierte Frame
                 const tmpCanvas = document.createElement('canvas');
                 tmpCanvas.width = gifW;
                 tmpCanvas.height = gifH;
-                const tCtx = tmpCanvas.getContext('2d');
+                const tCtx = tmpCanvas.getContext('2d', { willReadFrequently: true });
                 
-                if (isTransparent) {
-                    // Wir streichen die Leinwand in reinem Magenta. Der Encoder schneidet diese Farbe später zu 100% aus!
-                    tCtx.fillStyle = chromaHex;
-                    tCtx.fillRect(0, 0, gifW, gifH);
-                } else {
+                if (!isTransparent) {
                     tCtx.fillStyle = getCSSVar('--canvas-bg');
                     tCtx.fillRect(0, 0, gifW, gifH);
                 }
                 
-                // Skalieren und Zeichnen
                 tCtx.drawImage(animCanvas, 0, 0, animCanvas.width, animCanvas.height, 0, 0, gifW, gifH);
                 
-                // Frame an den Encoder übergeben (50ms Delay = 20 FPS)
+                // ALPHA THRESHOLDING (Anti-Fringe Technik): 
+                // Zwingt halbtransparente Ränder dazu, voll deckend oder komplett durchsichtig (Grün) zu sein
+                if (isTransparent) {
+                    const imgData = tCtx.getImageData(0, 0, gifW, gifH);
+                    const data = imgData.data;
+                    for (let j = 0; j < data.length; j += 4) {
+                        if (data[j + 3] < 128) {
+                            // Ersetze transparente Pixel gnadenlos durch die Chroma Key Farbe
+                            data[j] = 0;     // R
+                            data[j + 1] = 254; // G
+                            data[j + 2] = 1;   // B
+                            data[j + 3] = 255; // A (Voll deckend machen für den Quantizer!)
+                        } else {
+                            data[j + 3] = 255; // Halbdeckende Reste des Objekts voll deckend machen
+                        }
+                    }
+                    tCtx.putImageData(imgData, 0, 0);
+                }
+                
+                // 50ms Delay = exakt 20 Frames pro Sekunde 
                 gif.addFrame(tmpCanvas, {delay: 50});
                 
                 progressFill.style.width = ((i / totalFrames) * 30) + '%';
@@ -1879,7 +1845,6 @@
                     resultGif.src = ''; 
                 };
                 
-                // Speicher aufräumen
                 URL.revokeObjectURL(workerUrl);
             });
 
